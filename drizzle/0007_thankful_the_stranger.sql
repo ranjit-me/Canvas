@@ -1,0 +1,1 @@
+ALTER TABLE "webTemplate" ADD COLUMN "videoUrl" text;
