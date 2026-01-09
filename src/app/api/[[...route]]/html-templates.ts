@@ -5,6 +5,7 @@ import { db } from "@/db/drizzle";
 import { htmlTemplates, templateAssets, templateCustomizations } from "@/db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { verifyAuth } from "@hono/auth-js";
+import { translationService } from "@/lib/translation-service";
 
 const app = new Hono()
     // Get all HTML templates (with optional filters)
@@ -107,6 +108,16 @@ const app = new Hono()
 
                 const data = c.req.valid("json");
 
+                // AUTO-TRANSLATE: Extract and translate template content to all languages
+                let translations = null;
+                try {
+                    const translationResult = await translationService.translateTemplate(data.htmlCode);
+                    translations = JSON.stringify(translationResult);
+                    console.log('✅ Template auto-translated to 14 languages');
+                } catch (error) {
+                    console.error('Translation failed, template will be saved without translations:', error);
+                }
+
                 const newTemplate = await db
                     .insert(htmlTemplates)
                     .values({
@@ -114,6 +125,7 @@ const app = new Hono()
                         creatorId: auth.token.id,
                         status: "draft",
                         isActive: false,
+                        translations, // Store translations
                         createdAt: new Date(),
                         updatedAt: new Date(),
                     })
@@ -245,10 +257,23 @@ const app = new Hono()
                 return c.json({ error: "Unauthorized" }, 401);
             }
 
+            // AUTO-TRANSLATE: If no translations exist, generate them now
+            let translations = existing.translations;
+            if (!translations) {
+                try {
+                    const translationResult = await translationService.translateTemplate(existing.htmlCode);
+                    translations = JSON.stringify(translationResult);
+                    console.log('✅ Template auto-translated on publish');
+                } catch (error) {
+                    console.error('Translation failed on publish:', error);
+                }
+            }
+
             const updated = await db
                 .update(htmlTemplates)
                 .set({
                     status: "pending",
+                    translations, // Update translations if generated
                     updatedAt: new Date(),
                 })
                 .where(eq(htmlTemplates.id, id))

@@ -69,7 +69,7 @@ export const Navbar = () => {
   }, []);
 
   return (
-    <nav className="w-full flex items-center px-6 h-[68px] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 z-50">
+    <nav className="w-full flex items-center px-6 h-[68px] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 sticky top-0 z-30">
       {/* Location/Address Section */}
       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer group">
         <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg group-hover:bg-purple-50 dark:group-hover:bg-purple-900/30">

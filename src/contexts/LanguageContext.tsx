@@ -12,6 +12,8 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+type TranslationKey = keyof typeof translations.en;
+
 const translations = {
     en: {
         'dashboard.hero.title': 'What will you design today?',
@@ -26,6 +28,8 @@ const translations = {
         'dashboard.continueEditing': 'Continue Editing',
         'dashboard.preview': 'Preview',
         'dashboard.footer': 'Create beautiful digital experiences for life\'s special moments',
+        'creator.brand': 'Creator Studio',
+        'creator.brand.short': 'Creator',
         'sidebar.create': 'Create',
         'sidebar.home': 'Home',
         'sidebar.birthday': 'Birthday Website',
@@ -48,6 +52,14 @@ const translations = {
         'button.save': 'Save',
         'button.publish': 'Publish',
         'button.draft': 'Draft',
+        'nav.home': 'Home',
+        'nav.orders': 'Orders',
+        'nav.valentine': 'Valentine Week',
+        'nav.birthday': 'Birthday',
+        'nav.anniversary': 'Anniversary',
+        'nav.special': 'Special Days',
+        'nav.wedding': 'Wedding',
+        'nav.cultural': 'Religious & Cultural',
     },
     hi: {
         'dashboard.hero.title': 'आज आप क्या डिज़ाइन करेंगे?',
@@ -84,6 +96,14 @@ const translations = {
         'button.save': 'सहेजें',
         'button.publish': 'प्रकाशित करें',
         'button.draft': 'ड्राफ्ट',
+        'nav.home': 'होम',
+        'nav.orders': 'ऑर्डर',
+        'nav.valentine': 'वेलेंटाइन सप्ताह',
+        'nav.birthday': 'जन्मदिन',
+        'nav.anniversary': 'वर्षगांठ',
+        'nav.special': 'विशेष दिन',
+        'nav.wedding': 'शादी',
+        'nav.cultural': 'धार्मिक और सांस्कृतिक',
     },
     es: {
         'dashboard.hero.title': '¿Qué diseñarás hoy?',
@@ -120,6 +140,14 @@ const translations = {
         'button.save': 'Guardar',
         'button.publish': 'Publicar',
         'button.draft': 'Borrador',
+        'nav.home': 'Inicio',
+        'nav.orders': 'Pedidos',
+        'nav.valentine': 'Semana de San Valentín',
+        'nav.birthday': 'Cumpleaños',
+        'nav.anniversary': 'Aniversario',
+        'nav.special': 'Días Especiales',
+        'nav.wedding': 'Boda',
+        'nav.cultural': 'Religioso y Cultural',
     },
     fr: {
         'dashboard.hero.title': 'Que vas-tu concevoir aujourd\'hui ?',
@@ -156,6 +184,14 @@ const translations = {
         'button.save': 'Enregistrer',
         'button.publish': 'Publier',
         'button.draft': 'Brouillon',
+        'nav.home': 'Accueil',
+        'nav.orders': 'Commandes',
+        'nav.valentine': 'Semaine de la Saint-Valentin',
+        'nav.birthday': 'Anniversaire',
+        'nav.anniversary': 'Anniversaire',
+        'nav.special': 'Jours spéciaux',
+        'nav.wedding': 'Mariage',
+        'nav.cultural': 'Religieux et culturel',
     },
     de: {
         'dashboard.hero.title': 'Was wirst du heute gestalten?',
@@ -192,6 +228,14 @@ const translations = {
         'button.save': 'Speichern',
         'button.publish': 'Veröffentlichen',
         'button.draft': 'Entwurf',
+        'nav.home': 'Startseite',
+        'nav.orders': 'Bestellungen',
+        'nav.valentine': 'Valentinswoche',
+        'nav.birthday': 'Geburtstag',
+        'nav.anniversary': 'Jubiläum',
+        'nav.special': 'Besondere Tage',
+        'nav.wedding': 'Hochzeit',
+        'nav.cultural': 'Religiös und kulturell',
     },
     ar: {
         'dashboard.hero.title': 'ماذا ستصمم اليوم؟',
@@ -228,6 +272,14 @@ const translations = {
         'button.save': 'حفظ',
         'button.publish': 'نشر',
         'button.draft': 'مسودة',
+        'nav.home': 'الرئيسية',
+        'nav.orders': 'الطلبات',
+        'nav.valentine': 'أسبوع عيد الحب',
+        'nav.birthday': 'عيد ميلاد',
+        'nav.anniversary': 'الذكرى السنوية',
+        'nav.special': 'أيام خاصة',
+        'nav.wedding': 'زفاف',
+        'nav.cultural': 'ديني وثقافي',
     },
     zh: {
         'dashboard.hero.title': '今天你要设计什么？',
@@ -264,6 +316,14 @@ const translations = {
         'button.save': '保存',
         'button.publish': '发布',
         'button.draft': '草稿',
+        'nav.home': '首页',
+        'nav.orders': '订单',
+        'nav.valentine': '情人节周',
+        'nav.birthday': '生日',
+        'nav.anniversary': '周年纪念',
+        'nav.special': '特殊日子',
+        'nav.wedding': '婚礼',
+        'nav.cultural': '宗教与文化',
     },
     pt: {
         'dashboard.hero.title': 'O que você vai criar hoje?',
@@ -300,6 +360,14 @@ const translations = {
         'button.save': 'Salvar',
         'button.publish': 'Publicar',
         'button.draft': 'Rascunho',
+        'nav.home': 'Início',
+        'nav.orders': 'Pedidos',
+        'nav.valentine': 'Semana dos Namorados',
+        'nav.birthday': 'Aniversário',
+        'nav.anniversary': 'Aniversário',
+        'nav.special': 'Dias Especiais',
+        'nav.wedding': 'Casamento',
+        'nav.cultural': 'Religioso e Cultural',
     },
     bn: {
         'dashboard.hero.title': 'আজ আপনি কি ডিজাইন করবেন?',
@@ -336,6 +404,14 @@ const translations = {
         'button.save': 'সংরক্ষণ করুন',
         'button.publish': 'প্রকাশ করুন',
         'button.draft': 'খসড়া',
+        'nav.home': 'হোম',
+        'nav.orders': 'অর্ডার',
+        'nav.valentine': 'ভ্যালেন্টাইন সপ্তাহ',
+        'nav.birthday': 'জন্মদিন',
+        'nav.anniversary': 'বার্ষিকী',
+        'nav.special': 'বিশেষ দিন',
+        'nav.wedding': 'বিয়ে',
+        'nav.cultural': 'ধর্মীয় ও সাংস্কৃতিক',
     },
     ru: {
         'dashboard.hero.title': 'Что вы будете создавать сегодня?',
@@ -372,6 +448,14 @@ const translations = {
         'button.save': 'Сохранить',
         'button.publish': 'Опубликовать',
         'button.draft': 'Черновик',
+        'nav.home': 'Главная',
+        'nav.orders': 'Заказы',
+        'nav.valentine': 'Неделя святого Валентина',
+        'nav.birthday': 'День рождения',
+        'nav.anniversary': 'Юбилей',
+        'nav.special': 'Особые дни',
+        'nav.wedding': 'Свадьба',
+        'nav.cultural': 'Религиозное и культурное',
     },
     ur: {
         'dashboard.hero.title': 'آج آپ کیا ڈیزائن کریں گے؟',
@@ -408,6 +492,14 @@ const translations = {
         'button.save': 'محفوظ کریں',
         'button.publish': 'شائع کریں',
         'button.draft': 'مسودہ',
+        'nav.home': 'ہوم',
+        'nav.orders': 'آرڈرز',
+        'nav.valentine': 'ویلنٹائن ہفتہ',
+        'nav.birthday': 'سالگرہ',
+        'nav.anniversary': 'سالگرہ',
+        'nav.special': 'خاص دن',
+        'nav.wedding': 'شادی',
+        'nav.cultural': 'مذہبی اور ثقافتی',
     },
     id: {
         'dashboard.hero.title': 'Apa yang akan Anda desain hari ini?',
@@ -444,6 +536,60 @@ const translations = {
         'button.save': 'Simpan',
         'button.publish': 'Terbitkan',
         'button.draft': 'Draf',
+        'nav.home': 'Beranda',
+        'nav.orders': 'Pesanan',
+        'nav.valentine': 'Minggu Valentine',
+        'nav.birthday': 'Ulang Tahun',
+        'nav.anniversary': 'Peringatan',
+        'nav.special': 'Hari Istimewa',
+        'nav.wedding': 'Pernikahan',
+        'nav.cultural': 'Keagamaan & Budaya',
+    },
+    te: {
+        'dashboard.hero.title': 'ఈరోజు మీరు ఏమి డిజైన్ చేస్తారు?',
+        'dashboard.hero.subtitle': 'ప్రతి ప్రత్యేక క్షణం కోసం అద్భుతమైన మినీ-వెబ్‌సైట్‌లు మరియు సోషల్ మీడియా కంటెంట్‌ను సృష్టించండి',
+        'dashboard.web.title': 'నా వెబ్‌సైట్ ఆర్డర్‌లు',
+        'dashboard.web.subtitle': 'మీ సేవ్ చేసిన వెబ్‌సైట్ ఆర్డర్‌లపై పని కొనసాగించండి',
+        'dashboard.templates.title': 'మినీ వెబ్‌సైట్ టెంప్లేట్‌లు',
+        'dashboard.templates.subtitle': 'మీ ప్రత్యేక సందర్భాల కోసం అందమైన ఇంటరాక్టివ్ వెబ్‌సైట్‌లను సృష్టించండి',
+        'dashboard.posters.title': 'పోస్టర్ & స్టోరీ టెంప్లేట్‌లు',
+        'dashboard.posters.subtitle': 'Instagram, Facebook & WhatsApp కోసం అద్భుతమైన సోషల్ మీడియా పోస్ట్‌లు మరియు స్టోరీలను డిజైన్ చేయండి',
+        'dashboard.viewAll': 'అన్నీ చూడండి',
+        'dashboard.continueEditing': 'ఎడిటింగ్ కొనసాగించండి',
+        'dashboard.preview': 'ప్రివ్యూ',
+        'dashboard.footer': 'జీవితంలోని ప్రత్యేక క్షణాల కోసం అందమైన డిజిటల్ అనుభవాలను సృష్టించండి',
+        'creator.brand': 'క్రియేటర్ స్టూడియో',
+        'creator.brand.short': 'క్రియేటర్',
+        'sidebar.create': 'సృష్టించండి',
+        'sidebar.home': 'హోమ్',
+        'sidebar.birthday': 'పుట్టినరోజు వెబ్‌సైట్',
+        'sidebar.anniversary': 'వార్షికోత్సవ వెబ్‌సైట్',
+        'sidebar.wedding': 'పెళ్లి / నిశ్చితార్థం',
+        'sidebar.valentine': 'వాలెంటైన్ వారం',
+        'sidebar.special': 'ప్రత్యేక రోజులు',
+        'sidebar.religious': 'మత & సాంస్కృతిక',
+        'sidebar.orders': 'ఆర్డర్‌లు',
+        'sidebar.profile': 'ప్రొఫైల్ సవరించండి',
+        'sidebar.logout': 'లాగ్ అవుట్',
+        'birthday.title': 'పుట్టినరోజు శుభాకాంక్షలు',
+        'birthday.subtitle': 'నా ప్రేమ',
+        'birthday.description': 'ప్రతి రోజును ప్రకాశవంతం చేసే అత్యంత అందమైన ఆత్మకు',
+        'countdown.title': 'ప్రత్యేక ఆశ్చర్య కౌంట్‌డౌన్',
+        'memories.title': 'మన అందమైన జ్ఞాపకాలు',
+        'memories.subtitle': 'ప్రతి ఫోటో ఒక కథను చెబుతుంది, ప్రతి క్షణం ఒక నిధి',
+        'timeline.title': 'నా ప్రేమ లేఖలు',
+        'timeline.subtitle': 'ప్రతి పదం నా గుండె నుండి నేరుగా వస్తుంది',
+        'button.save': 'సేవ్ చేయండి',
+        'button.publish': 'ప్రచురించండి',
+        'button.draft': 'డ్రాఫ్ట్',
+        'nav.home': 'హోమ్',
+        'nav.orders': 'ఆర్డర్లు',
+        'nav.valentine': 'వాలెంటైన్ వారం',
+        'nav.birthday': 'పుట్టినరోజు',
+        'nav.anniversary': 'వార్షికోత్సవం',
+        'nav.special': 'ప్రత్యేక దినాలు',
+        'nav.wedding': 'పెళ్ళి',
+        'nav.cultural': 'మత మరియు సాంస్కృతిక',
     },
 };
 
@@ -464,12 +610,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     };
 
     const t = (key: string): string => {
-        const langTranslations = translations[language as keyof typeof translations];
-        if (langTranslations) {
-            return langTranslations[key as keyof typeof translations['en']] || key;
+        const langData = translations as Record<string, Record<string, string>>;
+        const langTranslations = langData[language];
+
+        if (langTranslations && langTranslations[key]) {
+            return langTranslations[key];
         }
-        // Fallback to English if language not available
-        return translations.en[key as keyof typeof translations['en']] || key;
+
+        // Fallback to English
+        const enTranslations = translations.en as Record<string, string>;
+        return enTranslations[key] || key;
     };
 
     return (

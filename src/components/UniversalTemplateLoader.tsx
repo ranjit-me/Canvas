@@ -3,11 +3,13 @@
 import React from "react";
 import { EditableText } from "@/app/(dashboard)/web/features/components/EditableText";
 import { EditableImage } from "@/app/(dashboard)/web/features/components/EditableImage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UniversalTemplateLoaderProps {
     code: string;
     data?: Record<string, string>; // Initial values mapped by ID
     config?: Record<string, any>; // Props config from creator/user
+    translations?: string | null; // JSON string of translations: { en: {...}, hi: {...}, ... }
 }
 
 /**
@@ -21,13 +23,49 @@ export interface UniversalTemplateLoaderHandle {
 }
 
 export const UniversalTemplateLoader = React.forwardRef<UniversalTemplateLoaderHandle, UniversalTemplateLoaderProps>(
-    ({ code, data = {}, config = {} }, ref) => {
+    ({ code, data = {}, config = {}, translations = null }, ref) => {
         const [selectedId, setSelectedId] = React.useState<string | null>(null);
         const [localData, setLocalData] = React.useState<Record<string, string>>(data);
+        const { language } = useLanguage();
 
         React.useImperativeHandle(ref, () => ({
             getData: () => localData,
         }));
+
+        // Apply translations to code if available
+        const translatedCode = React.useMemo(() => {
+            if (!translations) return code;
+
+            try {
+                const translationsObj = JSON.parse(translations);
+                const langTranslations = translationsObj[language] || translationsObj['en'];
+
+                if (!langTranslations) return code;
+
+                let result = code;
+                // Replace translated text in data-editable and id-based elements
+                Object.entries(langTranslations).forEach(([fieldName, translatedText]) => {
+                    // Replace in data-editable elements
+                    const editableRegex = new RegExp(
+                        `(data-editable="${fieldName}"[^>]*>)(.*?)(</)`,
+                        'gi'
+                    );
+                    result = result.replace(editableRegex, `$1${translatedText}$3`);
+
+                    // Replace in ID-based elements  
+                    const idRegex = new RegExp(
+                        `(id="${fieldName}"[^>]*>)(.*?)(</)`,
+                        'gi'
+                    );
+                    result = result.replace(idRegex, `$1${translatedText}$3`);
+                });
+
+                return result;
+            } catch (error) {
+                console.error('Failed to apply translations:', error);
+                return code;
+            }
+        }, [code, translations, language]);
 
         // Helper to replace {config.key} in strings
         const injectConfig = (str: string) => {
@@ -46,9 +84,9 @@ export const UniversalTemplateLoader = React.forwardRef<UniversalTemplateLoaderH
         let lastIndex = 0;
         let match;
 
-        while ((match = componentRegex.exec(code)) !== null) {
+        while ((match = componentRegex.exec(translatedCode)) !== null) {
             // Add preceding HTML chunk
-            const htmlBefore = code.substring(lastIndex, match.index).trim();
+            const htmlBefore = translatedCode.substring(lastIndex, match.index).trim();
             if (htmlBefore) {
                 chunks.push(<div key={`html_${lastIndex}`} dangerouslySetInnerHTML={{ __html: injectConfig(htmlBefore) }} className="inline" />);
             }
@@ -90,7 +128,7 @@ export const UniversalTemplateLoader = React.forwardRef<UniversalTemplateLoaderH
         }
 
         // Add remaining HTML chunk
-        const htmlAfter = code.substring(lastIndex).trim();
+        const htmlAfter = translatedCode.substring(lastIndex).trim();
         if (htmlAfter) {
             chunks.push(<div key={`html_${lastIndex}`} dangerouslySetInnerHTML={{ __html: injectConfig(htmlAfter) }} className="inline" />);
         }

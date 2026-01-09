@@ -16,7 +16,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { T } from '@/components/translated-text';
 import { useTranslate } from '@/hooks/use-translate';
-import { PromotionalCarousel } from '@/features/dashboard/components/promotional-carousel';
+import { ImageCarousel } from '@/components/ImageCarousel';
 
 export default function DashboardContent() {
     const router = useRouter();
@@ -92,65 +92,18 @@ export default function DashboardContent() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30">
-            {/* Hero Section */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 py-24">
-                {/* Decorative Background */}
-                <div className="absolute inset-0">
-                    <div className="absolute top-20 left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-20 right-20 w-80 h-80 bg-pink-400/20 rounded-full blur-3xl"></div>
-                    <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"></div>
-                </div>
-
-                <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center"
-                    >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-6">
-                            <Sparkles className="w-5 h-5 text-yellow-300" />
-                            <span className="text-white font-semibold">Create Beautiful Celebration Websites</span>
-                        </div>
-
-                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
-                            Celebrate Every
-                            <span className="block bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">
-                                Special Moment
-                            </span>
-                        </h1>
-
-                        <p className="text-xl text-purple-100 mb-10 max-w-2xl mx-auto">
-                            Choose from our stunning collection of templates for birthdays, weddings, anniversaries, and more.
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link href="#trending">
-                                <button className="px-8 py-4 bg-white text-purple-600 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all hover:scale-105 shadow-xl">
-                                    Browse Templates
-                                </button>
-                            </Link>
-                            {webProjects && webProjects.length > 0 && (
-                                <Link href="/dashboard/projects">
-                                    <button className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-2xl font-bold text-lg hover:bg-white/20 transition-all border-2 border-white/30">
-                                        My Projects
-                                    </button>
-                                </Link>
-                            )}
-                        </div>
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* Promotional Carousel */}
-            <div className="max-w-7xl mx-auto px-6 lg:px-8 -mt-16 relative z-10">
-                <PromotionalCarousel />
+            {/* Image Carousel - Hero */}
+            <div className="w-full px-4 sm:px-6 mb-8">
+                <ImageCarousel />
             </div>
 
+            {/* Sliding Categories Marquee */}
+            <CategoryMarquee categories={categories} />
+
             {/* Trending Templates Section */}
-            {trendingTemplates && trendingTemplates.length > 0 && (
+            {(trendingTemplates as any[]) && (trendingTemplates as any[]).length > 0 && (
                 <section id="trending" className="py-20 bg-white">
-                    <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="w-full px-4 sm:px-6">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -173,7 +126,7 @@ export default function DashboardContent() {
                         {/* Horizontal Scroll */}
                         <div className="relative">
                             <div className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide">
-                                {trendingTemplates.map((template: any, index: number) => (
+                                {(trendingTemplates as any[]).map((template: any, index: number) => (
                                     <div key={template.id} className="flex-none w-[350px] snap-start">
                                         <WebTemplateCard template={template} index={index} />
                                     </div>
@@ -185,9 +138,9 @@ export default function DashboardContent() {
             )}
 
             {/* Latest Templates Section */}
-            {latestTemplates && latestTemplates.length > 0 && (
+            {(latestTemplates as any[]) && (latestTemplates as any[]).length > 0 && (
                 <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
-                    <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="w-full px-4 sm:px-6">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -209,7 +162,7 @@ export default function DashboardContent() {
 
                         {/* Grid Layout */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {latestTemplates.map((template: any, index: number) => (
+                            {(latestTemplates as any[]).map((template: any, index: number) => (
                                 <WebTemplateCard key={template.id} template={template} index={index} />
                             ))}
                         </div>
@@ -228,7 +181,7 @@ export default function DashboardContent() {
 
             {/* Features Section */}
             <section className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                <div className="w-full px-4 sm:px-6">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
                             Why Choose ELYX?
@@ -280,7 +233,7 @@ export default function DashboardContent() {
 
             {/* CTA Section */}
             <section className="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
-                <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
+                <div className="w-full px-4 sm:px-6 text-center">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         whileInView={{ opacity: 1, scale: 1 }}
@@ -303,7 +256,7 @@ export default function DashboardContent() {
 
             {/* Footer */}
             <footer className="bg-gray-900 text-white py-12">
-                <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+                <div className="w-full px-4 sm:px-6 text-center">
                     <p className="text-gray-400">
                         © 2024 ELYX. All rights reserved.
                     </p>
@@ -318,13 +271,13 @@ function CategorySection({ category, index }: { category: any; index: number }) 
     const { data: templates, isLoading } = useGetTemplatesByCategory(category.id);
     const Icon = category.icon;
 
-    if (isLoading || !templates || templates.length === 0) {
+    if (isLoading || !(templates as any[]) || (templates as any[]).length === 0) {
         return null;
     }
 
     return (
         <section className={`py-20 ${index % 2 === 0 ? 'bg-white' : 'bg-gradient-to-br from-gray-50 to-purple-50/30'}`}>
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="w-full px-4 sm:px-6">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -355,7 +308,7 @@ function CategorySection({ category, index }: { category: any; index: number }) 
                 {/* Horizontal Scroll */}
                 <div className="relative">
                     <div className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide">
-                        {templates.slice(0, 6).map((template: any, templateIndex: number) => (
+                        {(templates as any[]).slice(0, 6).map((template: any, templateIndex: number) => (
                             <div key={template.id} className="flex-none w-[350px] snap-start">
                                 <WebTemplateCard template={template} index={templateIndex} />
                             </div>
@@ -364,5 +317,59 @@ function CategorySection({ category, index }: { category: any; index: number }) 
                 </div>
             </div>
         </section>
+    );
+}
+
+// Sliding Categories Marquee Component
+function CategoryMarquee({ categories }: { categories: any[] }) {
+    // Duplicate categories for seamless infinite loop
+    const doubledCategories = [...categories, ...categories, ...categories];
+
+    return (
+        <div className="w-full overflow-hidden bg-white/50 backdrop-blur-sm py-8 border-y border-gray-100 mb-8">
+            <motion.div
+                className="flex gap-6 whitespace-nowrap"
+                animate={{
+                    x: [0, -100 * categories.length],
+                }}
+                transition={{
+                    x: {
+                        repeat: Infinity,
+                        repeatType: "loop",
+                        duration: 30,
+                        ease: "linear",
+                    },
+                }}
+            >
+                {doubledCategories.map((category, index) => {
+                    const Icon = category.icon;
+                    return (
+                        <Link
+                            key={`${category.id}-${index}`}
+                            href={category.href}
+                            className="flex-none"
+                        >
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                className="flex items-center gap-4 px-6 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-purple-200 hover:shadow-md transition-all group"
+                            >
+                                <div className={`w-12 h-12 bg-gradient-to-br ${category.gradient} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                    <Icon className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-lg font-bold text-gray-900 leading-tight">
+                                        {category.title}
+                                    </span>
+                                    <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                                        Explore More
+                                    </span>
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-purple-500 transition-colors ml-2" />
+                            </motion.div>
+                        </Link>
+                    );
+                })}
+            </motion.div>
+        </div>
     );
 }

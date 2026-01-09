@@ -369,6 +369,7 @@ export const webTemplates = pgTable("webTemplate", {
   componentCode: text("componentCode"), // Original code uploaded by creator
   configSchema: text("configSchema"), // JSON: [{key, type, label}, ...]
   initialConfig: text("initialConfig"), // JSON: {key: value}
+  translations: text("translations"), // JSON: { en: {...}, hi: {...}, es: {...}, ... }
   isDynamic: boolean("isDynamic").default(false), // True if uploaded via creator dashboard
   isActive: boolean("isActive").default(true),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
@@ -499,6 +500,7 @@ export const htmlTemplates = pgTable("htmlTemplate", {
   isActive: boolean("isActive").default(false),
   isFree: boolean("isFree").default(false),
   editableFields: text("editableFields"), // JSON: [{id, type, label, defaultValue}]
+  translations: text("translations"), // JSON: { en: {...}, hi: {...}, es: {...}, ... }
   slug: text("slug").unique(), // URL-friendly identifier for public access
   isPublished: boolean("isPublished").default(false), // Whether template is publicly accessible
   createdAt: timestamp("createdAt", { mode: "date" }).notNull(),

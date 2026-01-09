@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import {
     LayoutTemplate,
     Upload,
@@ -10,7 +12,8 @@ import {
     Code,
     Settings,
     ChevronLeft,
-    FileCode
+    FileCode,
+    LogIn
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,7 +29,6 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     const router = useRouter();
     const pathname = usePathname();
     const [isAuthorized, setIsAuthorized] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const isLoginPage = pathname === "/creator/login";
 
@@ -54,89 +56,81 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     }
 
     return (
-        <div className="min-h-screen bg-[#FDFCFD] flex overflow-hidden">
-            {/* Sidebar */}
-            <motion.aside
-                initial={false}
-                animate={{ width: isSidebarOpen ? 280 : 80 }}
-                className="bg-white border-r border-gray-100 flex flex-col relative z-20 group"
-            >
-                {/* Logo Section */}
-                <div className="p-6 h-20 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-100">
-                        <Code className="w-6 h-6 text-white" />
+        <div className="min-h-screen bg-[#FDFCFD] flex flex-col">
+            {/* Top Header */}
+            <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between shadow-sm">
+                <Link href="/creator" className="flex items-center gap-3 group">
+                    <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-2 ring-blue-100 group-hover:ring-blue-300 transition-all">
+                        <Image
+                            src="/elyx-logo.png"
+                            alt="Creator Studio"
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
                     </div>
-                    {isSidebarOpen && (
-                        <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="font-black text-xl text-gray-900 tracking-tight"
-                        >
-                            Creator <span className="text-blue-500">Studio</span>
-                        </motion.span>
-                    )}
-                </div>
+                    <span className="font-black text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:to-indigo-500 transition-all">
+                        Creator <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Studio</span>
+                    </span>
+                </Link>
+                {/* Add User Menu or Logout here if needed later */}
+            </header>
 
-                {/* Navigation Items */}
-                <nav className="flex-1 px-4 mt-4">
-                    <ul className="space-y-2">
+            {/* Horizontal Navigation Bar (below top navbar) */}
+            <nav className="bg-white border-b border-gray-100 px-6 py-2 overflow-x-auto">
+                <div className="flex items-center justify-between">
+                    <ul className="flex items-center gap-2">
                         {SIDEBAR_ITEMS.map((item) => {
                             const Icon = item.icon;
+                            const isActive = pathname === item.href;
                             return (
-                                <li key={item.id}>
+                                <li key={item.id} className="flex-shrink-0">
                                     <button
                                         onClick={() => router.push(item.href)}
                                         className={cn(
-                                            "w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group/item",
-                                            "hover:bg-blue-50/50 hover:text-blue-600 font-bold text-gray-500"
+                                            "flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-medium text-sm",
+                                            isActive
+                                                ? "bg-blue-50 text-blue-600 font-bold"
+                                                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                                         )}
                                     >
-                                        <Icon className="w-5 h-5 flex-shrink-0 group-hover/item:scale-110 transition-transform" />
-                                        {isSidebarOpen && (
-                                            <span className="truncate">{item.label}</span>
-                                        )}
+                                        <Icon className={cn("w-4 h-4", isActive ? "text-blue-600" : "text-gray-400")} />
+                                        <span>{item.label}</span>
                                     </button>
                                 </li>
                             );
                         })}
                     </ul>
-                </nav>
 
-                {/* Footer Actions */}
-                <div className="p-4 border-t border-gray-50">
+                    {/* Login/Logout Button */}
                     <button
                         onClick={() => {
-                            localStorage.removeItem("creator_auth");
-                            router.push("/creator/login");
+                            if (isAuthorized) {
+                                localStorage.removeItem("creator_auth");
+                                router.push("/creator/login");
+                            } else {
+                                router.push("/creator/login");
+                            }
                         }}
-                        className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 text-red-500 font-bold",
-                            "hover:bg-red-50"
-                        )}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-medium text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md flex-shrink-0"
                     >
-                        <LogOut className="w-5 h-5 flex-shrink-0" />
-                        {isSidebarOpen && <span>Logout</span>}
+                        {isAuthorized ? (
+                            <>
+                                <LogOut className="w-4 h-4" />
+                                <span>Logout</span>
+                            </>
+                        ) : (
+                            <>
+                                <LogIn className="w-4 h-4" />
+                                <span>Login</span>
+                            </>
+                        )}
                     </button>
                 </div>
+            </nav>
 
-                {/* Collapse Button */}
-                <button
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="absolute -right-3 top-24 w-6 h-6 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-500 shadow-sm transition-colors z-30"
-                >
-                    <ChevronLeft className={cn("w-4 h-4 transition-transform", !isSidebarOpen && "rotate-180")} />
-                </button>
-            </motion.aside>
-
-            {/* Main Content Area */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                <header className="h-20 border-b border-gray-50 bg-white/50 backdrop-blur-xl px-8 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">Creator Dashboard</h2>
-                    </div>
-                </header>
-
-                <div className="flex-1 overflow-auto p-8">
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-gray-50/50">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden p-6">
                     {children}
                 </div>
             </main>
