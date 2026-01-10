@@ -6,6 +6,7 @@ import { useSession, signIn } from "next-auth/react";
 import { Edit3, Sparkles } from "lucide-react";
 
 import { useGetWebProjectBySlug } from "@/features/web-projects/api/use-get-web-project-by-slug";
+import { useGetHtmlTemplate } from "@/features/html-templates/api/use-get-html-template-by-id";
 import { AnniversaryWebsite } from "@/features/web-projects/templates/romantic-anniversary/romantic-anniversary";
 import { BirthdayWebsite as RoseBirthday } from "@/features/web-projects/templates/rose-birthday/rose-birthday";
 import { DreamyPinkParadise } from "@/features/web-projects/templates/dreamy-pink-paradise/dreamy-pink-paradise";
@@ -26,9 +27,27 @@ export default function PublicProjectPage() {
 
     const { data: response, isLoading, error } = useGetWebProjectBySlug(slug);
 
-    // State for HTML template data
-    const [htmlTemplate, setHtmlTemplate] = React.useState<any>(null);
-    const [loadingHtmlTemplate, setLoadingHtmlTemplate] = React.useState(false);
+    // Determine template ID for HTML template fetching
+    const htmlTemplateId = React.useMemo(() => {
+        if (!response) return null;
+
+        // Check if it's a pure HTML template
+        if (response.type === "html") {
+            return response.data.id;
+        }
+        // Check if it's a webProject with an HTML template
+        if (response.type === "react" && (response.data as any).templateId?.startsWith("html-")) {
+            return (response.data as any).templateId;
+        }
+
+        return null;
+    }, [response]);
+
+    // Fetch HTML template using React Query (with automatic caching!)
+    const {
+        data: htmlTemplate,
+        isLoading: isLoadingHtmlTemplate
+    } = useGetHtmlTemplate(htmlTemplateId);
 
     // Handle authentication for edit mode
     useEffect(() => {
@@ -37,42 +56,7 @@ export default function PublicProjectPage() {
         }
     }, [isEditRequested, status]);
 
-    // Fetch HTML template if needed (for both pure HTML templates and webProjects with HTML templates)
-    useEffect(() => {
-        const fetchHtmlTemplate = async () => {
-            if (!response) return;
-
-            let templateId: string | null = null;
-
-            // Check if it's a pure HTML template
-            if (response.type === "html") {
-                templateId = response.data.id;
-            }
-            // Check if it's a webProject with an HTML template
-            else if (response.type === "react" && (response.data as any).templateId?.startsWith("html-")) {
-                templateId = (response.data as any).templateId;
-            }
-
-            if (templateId) {
-                setLoadingHtmlTemplate(true);
-                try {
-                    const res = await fetch(`/api/html-templates/${templateId}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        setHtmlTemplate(data.template);
-                    }
-                } catch (err) {
-                    console.error("Failed to fetch HTML template:", err);
-                } finally {
-                    setLoadingHtmlTemplate(false);
-                }
-            }
-        };
-
-        fetchHtmlTemplate();
-    }, [response]);
-
-    if (isLoading || loadingHtmlTemplate || (isEditRequested && status === "loading")) {
+    if (isLoading || isLoadingHtmlTemplate || (isEditRequested && status === "loading")) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-950">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
@@ -113,12 +97,27 @@ export default function PublicProjectPage() {
 </html>
         `.trim();
 
+        // If in edit mode and authenticated, show editor
+        if (isEditRequested && status === "authenticated") {
+            return (
+                <div className="w-full h-screen bg-white">
+                    <HtmlTemplateEditor
+                        templateId={htmlTemplate.id}
+                        htmlCode={fullHtml}
+                        isEditMode={true}
+                    />
+                </div>
+            );
+        }
+
+        // Otherwise, show clean preview without any editing capabilities
         return (
             <div className="w-full h-screen bg-white">
-                <HtmlTemplateEditor
-                    templateId={htmlTemplate.id} // htmlTemplate is the state variable holding the data
-                    htmlCode={fullHtml}
-                    isEditMode={!!isEditRequested}
+                <iframe
+                    srcDoc={fullHtml}
+                    className="w-full h-full border-0"
+                    title={htmlTemplate.name || "Template"}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                 />
             </div>
         );

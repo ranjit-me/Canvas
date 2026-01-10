@@ -264,10 +264,12 @@ function ProjectCard({ project }: { project: any }) {
     const deleteMutation = useDeleteWebProject();
 
     const handleEdit = () => {
-        // Check if this is an HTML template
+        // Check if this is an HTML template (from creator panel)
         if (project.templateId?.startsWith("html-")) {
-            router.push(`/html-preview/${project.templateId}`);
+            // Use the templateId as-is since it already has the 'html-' prefix
+            router.push(`/templates/html/edit/${project.templateId}`);
         } else {
+            // JSX/TSX template - use existing path
             const templatePath = getTemplatePath(project.templateId);
             router.push(`${templatePath}?id=${project.id}`);
         }
@@ -402,10 +404,12 @@ function WebProjectActions({ project }: { project: any }) {
                     <DropdownMenuItem
                         className="h-10 cursor-pointer"
                         onClick={() => {
-                            // Check if this is an HTML template
+                            // Check if this is an HTML template (from creator panel)
                             if (project.templateId?.startsWith("html-")) {
-                                window.location.href = `/html-preview/${project.templateId}`;
+                                // Use the templateId as-is since it already has the 'html-' prefix
+                                window.location.href = `/templates/html/edit/${project.templateId}`;
                             } else {
+                                // JSX/TSX template - use existing path
                                 const templatePath = getTemplatePath(project.templateId);
                                 window.location.href = `${templatePath}?id=${project.id}`;
                             }

@@ -18,221 +18,41 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useGetCategories } from "@/features/categories/api/use-get-categories";
+import { Plus, X, Pencil } from "lucide-react";
 
-const DEMO_BIRTHDAY_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Birthday!</title>
-</head>
-<body>
-    <div class="container">
-        <div class="balloon balloon-1">🎈</div>
-        <div class="balloon balloon-2">🎈</div>
-        <div class="balloon balloon-3">🎈</div>
-        
-        <div class="cake">🎂</div>
-        
-        <h1 class="title">Happy Birthday!</h1>
-        <p class="name" id="birthdayName">Dear Friend</p>
-        <p class="message" id="wishMessage">
-            Wishing you a day filled with love, laughter, and wonderful memories!
-            May all your dreams come true! 🎉
-        </p>
-        
-        <div class="confetti">
-            <div class="confetti-piece"></div>
-            <div class="confetti-piece"></div>
-            <div class="confetti-piece"></div>
-            <div class="confetti-piece"></div>
-            <div class="confetti-piece"></div>
-        </div>
-    </div>
-</body>
-</html>`;
-
-const DEMO_BIRTHDAY_CSS = `* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+// File type definition
+interface CodeFile {
+    id: string;
+    name: string;
+    type: 'html' | 'css' | 'js';
+    content: string;
 }
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.container {
-    text-align: center;
-    padding: 2rem;
-    position: relative;
-    z-index: 1;
-}
-
-.balloon {
-    font-size: 4rem;
-    position: absolute;
-    animation: float 3s ease-in-out infinite;
-}
-
-.balloon-1 {
-    left: 10%;
-    top: 20%;
-    animation-delay: 0s;
-}
-
-.balloon-2 {
-    right: 15%;
-    top: 30%;
-    animation-delay: 1s;
-}
-
-.balloon-3 {
-    left: 20%;
-    bottom: 20%;
-    animation-delay: 2s;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-}
-
-.cake {
-    font-size: 8rem;
-    margin-bottom: 2rem;
-    animation: bounce 1s ease infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.title {
-    font-size: 4rem;
-    color: white;
-    text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-    margin-bottom: 1rem;
-    animation: glow 2s ease-in-out infinite;
-}
-
-@keyframes glow {
-    0%, 100% { text-shadow: 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #fff; }
-    50% { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff; }
-}
-
-.name {
-    font-size: 2.5rem;
-    color: #ffd700;
-    font-weight: bold;
-    margin-bottom: 2rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-}
-
-.message {
-    font-size: 1.5rem;
-    color: white;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.8;
-}
-
-.confetti {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-}
-
-.confetti-piece {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: #ffd700;
-    top: -10px;
-    animation: fall 4s linear infinite;
-}
-
-.confetti-piece:nth-child(1) {
-    left: 10%;
-    animation-delay: 0s;
-    background: #ff6b6b;
-}
-
-.confetti-piece:nth-child(2) {
-    left: 30%;
-    animation-delay: 1s;
-    background: #4ecdc4;
-}
-
-.confetti-piece:nth-child(3) {
-    left: 50%;
-    animation-delay: 2s;
-    background: #ffd700;
-}
-
-.confetti-piece:nth-child(4) {
-    left: 70%;
-    animation-delay: 0.5s;
-    background: #ff6b6b;
-}
-
-.confetti-piece:nth-child(5) {
-    left: 90%;
-    animation-delay: 1.5s;
-    background: #4ecdc4;
-}
-
-@keyframes fall {
-    to {
-        transform: translateY(100vh) rotate(360deg);
-    }
-}`;
-
-const DEMO_BIRTHDAY_JS = `// Make the birthday wish interactive
-document.addEventListener('DOMContentLoaded', function() {
-    // You can customize the name here
-    const nameElement = document.getElementById('birthdayName');
-    
-    // Add click event to change colors
-    document.querySelector('.title').addEventListener('click', function() {
-        const colors = ['#ff6b6b', '#4ecdc4', '#ffd700', '#ff8c42', '#a8e6cf'];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        this.style.color = randomColor;
-    });
-});`;
 
 export default function CreatorHtmlPage() {
     const router = useRouter();
     const { data: session } = useSession();
-    const [templateName, setTemplateName] = useState("Demo Birthday Template");
+    const [templateName, setTemplateName] = useState("");
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
-    const [description, setDescription] = useState("A beautiful animated birthday wish template");
+    const [description, setDescription] = useState("");
     const [category, setCategory] = useState("birthday");
     const [categoryId, setCategoryId] = useState("");
     const [subcategoryId, setSubcategoryId] = useState("");
-    const [htmlCode, setHtmlCode] = useState(DEMO_BIRTHDAY_HTML);
-    const [cssCode, setCssCode] = useState(DEMO_BIRTHDAY_CSS);
-    const [jsCode, setJsCode] = useState(DEMO_BIRTHDAY_JS);
     const [thumbnail, setThumbnail] = useState("");
     const [price, setPrice] = useState(0);
     const [isFree, setIsFree] = useState(true);
     const [showPreview, setShowPreview] = useState(false);
     const [savedTemplateId, setSavedTemplateId] = useState<string | null>(null);
+
+    // File management state
+    const [files, setFiles] = useState<CodeFile[]>([
+        { id: '1', name: 'index.html', type: 'html', content: '' },
+        { id: '2', name: 'styles.css', type: 'css', content: '' },
+        { id: '3', name: 'script.js', type: 'js', content: '' }
+    ]);
+    const [activeFileId, setActiveFileId] = useState('1');
+    const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState('');
+    const [showAddFileMenu, setShowAddFileMenu] = useState(false);
 
     const createMutation = useCreateHtmlTemplate();
     const publishMutation = usePublishHtmlTemplate();
@@ -245,6 +65,84 @@ export default function CreatorHtmlPage() {
     const selectedCategory = categories?.find((cat: any) => cat.id === categoryId);
     const availableSubcategories = selectedCategory?.subcategories || [];
 
+    // Get active file
+    const activeFile = files.find(f => f.id === activeFileId);
+
+    // File operations
+    const updateFileContent = (content: string) => {
+        setFiles(files.map(f =>
+            f.id === activeFileId ? { ...f, content } : f
+        ));
+    };
+
+    const closeFile = (fileId: string) => {
+        const fileIndex = files.findIndex(f => f.id === fileId);
+        const newFiles = files.filter(f => f.id !== fileId);
+
+        if (newFiles.length === 0) {
+            return; // Don't close the last file
+        }
+
+        setFiles(newFiles);
+
+        // If closing active file, switch to adjacent file
+        if (fileId === activeFileId) {
+            const newActiveIndex = Math.max(0, fileIndex - 1);
+            setActiveFileId(newFiles[newActiveIndex].id);
+        }
+    };
+
+    const addFile = (type: 'html' | 'css' | 'js') => {
+        const extensions = { html: 'html', css: 'css', js: 'js' };
+        const ext = extensions[type];
+        let baseName = `new-file.${ext}`;
+        let counter = 1;
+
+        // Find unique name
+        while (files.some(f => f.name === baseName)) {
+            baseName = `new-file-${counter}.${ext}`;
+            counter++;
+        }
+
+        const newFile: CodeFile = {
+            id: Date.now().toString(),
+            name: baseName,
+            type,
+            content: ''
+        };
+
+        setFiles([...files, newFile]);
+        setActiveFileId(newFile.id);
+        setShowAddFileMenu(false);
+    };
+
+    const startRename = (fileId: string, currentName: string) => {
+        setRenamingFileId(fileId);
+        setRenameValue(currentName);
+    };
+
+    const finishRename = () => {
+        if (renamingFileId && renameValue.trim()) {
+            setFiles(files.map(f =>
+                f.id === renamingFileId ? { ...f, name: renameValue.trim() } : f
+            ));
+        }
+        setRenamingFileId(null);
+        setRenameValue('');
+    };
+
+    const cancelRename = () => {
+        setRenamingFileId(null);
+        setRenameValue('');
+    };
+
+    // Translation state
+    const [activeTab, setActiveTab] = useState<'info' | 'code' | 'translation'>('info');
+    const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({
+        en: {}, hi: {}, es: {}, fr: {}, de: {}, ar: {}, zh: {}, pt: {}, bn: {}, ru: {}, ur: {}, id: {}, te: {},
+    });
+
+    // Save & Publish handlers
     const handleSave = async () => {
         if (!session?.user?.id) {
             alert("Please sign in to create templates");
@@ -254,19 +152,25 @@ export default function CreatorHtmlPage() {
         const templateId = `html-${Date.now()}`;
         setSavedTemplateId(templateId);
 
+        // Extract code from files by type
+        const htmlFile = files.find(f => f.type === 'html');
+        const cssFile = files.find(f => f.type === 'css');
+        const jsFile = files.find(f => f.type === 'js');
+
         await createMutation.mutateAsync({
             id: templateId,
             name: templateName,
             description,
-            htmlCode,
-            cssCode,
-            jsCode,
+            htmlCode: htmlFile?.content || '',
+            cssCode: cssFile?.content || '',
+            jsCode: jsFile?.content || '',
             category,
             categoryId: categoryId || undefined,
             subcategoryId: subcategoryId || undefined,
             thumbnail,
             price,
             isFree,
+            translations: JSON.stringify(translations),
         });
     };
 
@@ -281,39 +185,41 @@ export default function CreatorHtmlPage() {
         });
     };
 
-    const [activeTab, setActiveTab] = useState<'info' | 'html' | 'css' | 'js'>('info');
-
     const getPreviewHtml = () => {
-        let preview = htmlCode;
+        const htmlFile = files.find(f => f.type === 'html');
+        const cssFile = files.find(f => f.type === 'css');
+        const jsFile = files.find(f => f.type === 'js');
+
+        let preview = htmlFile?.content || '';
 
         // If it's NOT a full document, wrap it
-        if (!htmlCode.includes('<!DOCTYPE html>') && !htmlCode.includes('<html')) {
+        if (!preview.includes('<!DOCTYPE html>') && !preview.includes('<html')) {
             preview = `
                 <!DOCTYPE html>
                 <html>
                     <head></head>
                     <body>
-                        ${htmlCode}
+                        ${preview}
                     </body>
                 </html>
             `;
         }
 
         // Inject CSS if present
-        if (cssCode.trim()) {
+        if (cssFile?.content?.trim()) {
             if (preview.includes('</head>')) {
-                preview = preview.replace('</head>', `<style>${cssCode}</style></head>`);
+                preview = preview.replace('</head>', `<style>${cssFile.content}</style></head>`);
             } else {
-                preview = `<style>${cssCode}</style>` + preview;
+                preview = `<style>${cssFile.content}</style>` + preview;
             }
         }
 
         // Inject JS if present
-        if (jsCode.trim()) {
+        if (jsFile?.content?.trim()) {
             if (preview.includes('</body>')) {
-                preview = preview.replace('</body>', `<script>${jsCode}</script></body>`);
+                preview = preview.replace('</body>', `<script>${jsFile.content}</script></body>`);
             } else {
-                preview = preview + `<script>${jsCode}</script>`;
+                preview = preview + `<script>${jsFile.content}</script>`;
             }
         }
 
@@ -322,27 +228,127 @@ export default function CreatorHtmlPage() {
 
     return (
         <div className="h-screen bg-gray-100 p-8 flex flex-col overflow-hidden font-sans">
-            {/* Outer Container with heavy rounded corners */}
-            <div className="flex-1 bg-white rounded-[3rem] shadow-2xl overflow-hidden border-8 border-gray-900 flex relative">
+            {/* Outer Container with Siri-like hover animation */}
+            <div className="flex-1 bg-white rounded-[3rem] shadow-2xl overflow-hidden flex relative transition-all duration-500 ease-out hover:shadow-[0_0_60px_rgba(59,130,246,0.5)] hover:scale-[1.02]">
 
                 {/* Left Pane: Tabs & Editor */}
                 <div className="w-[45%] flex flex-col border-r-4 border-gray-900">
-                    {/* Tab Navigation */}
-                    <div className="flex items-center px-6 pt-6 pb-2 gap-4 overflow-x-auto">
-                        {['info', 'html', 'css', 'js'].map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab as any)}
-                                className={`px-4 py-2 rounded-full font-bold text-sm transition-all border-2 ${activeTab === tab
-                                    ? 'bg-gray-900 text-white border-gray-900'
-                                    : 'bg-transparent text-gray-500 border-transparent hover:bg-gray-100'
+                    {/* Tab Navigation - File Tabs Style */}
+                    <div className="flex items-center px-4 pt-4 pb-2 gap-2 overflow-x-auto bg-gray-50 border-b-2 border-gray-200">
+                        {/* Static Tabs (Template Info, Translation) */}
+                        <button
+                            onClick={() => setActiveTab('info')}
+                            className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-all whitespace-nowrap ${activeTab === 'info'
+                                ? 'bg-white text-gray-900 border-b-2 border-blue-500'
+                                : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                }`}
+                        >
+                            Template Information
+                        </button>
+
+                        <button
+                            onClick={() => setActiveTab('translation')}
+                            className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-all whitespace-nowrap ${activeTab === 'translation'
+                                ? 'bg-white text-gray-900 border-b-2 border-blue-500'
+                                : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                }`}
+                        >
+                            Translation
+                        </button>
+
+                        <div className="w-px h-6 bg-gray-300 mx-2"></div>
+
+                        {/* File Tabs */}
+                        {files.map((file) => (
+                            <div
+                                key={file.id}
+                                onClick={() => {
+                                    setActiveTab('code');
+                                    setActiveFileId(file.id);
+                                }}
+                                className={`group flex items-center gap-2 px-3 py-2 rounded-t-lg text-sm cursor-pointer transition-all ${activeTab === 'code' && activeFileId === file.id
+                                    ? 'bg-white text-blue-600 font-semibold border-b-2 border-blue-500'
+                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
                                     }`}
                             >
-                                {tab === 'info' ? 'Template Information' :
-                                    tab === 'html' ? 'HTML' :
-                                        tab === 'css' ? 'CSS' : 'Javascript'}
-                            </button>
+                                {/* File name or rename input */}
+                                {renamingFileId === file.id ? (
+                                    <input
+                                        type="text"
+                                        value={renameValue}
+                                        onChange={(e) => setRenameValue(e.target.value)}
+                                        onBlur={finishRename}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') finishRename();
+                                            if (e.key === 'Escape') cancelRename();
+                                        }}
+                                        className="bg-white border border-blue-500 rounded px-1 text-xs outline-none"
+                                        autoFocus
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                ) : (
+                                    <>
+                                        <span className="text-xs">{file.name}</span>
+
+                                        {/* Rename button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                startRename(file.id, file.name);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 hover:bg-gray-200 rounded p-0.5"
+                                        >
+                                            <Pencil className="w-3 h-3" />
+                                        </button>
+
+                                        {/* Close button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                closeFile(file.id);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 rounded p-0.5"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         ))}
+
+                        {/* Add File Button with Dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowAddFileMenu(!showAddFileMenu)}
+                                className="p-2 hover:bg-gray-200 rounded transition-all text-gray-600"
+                                title="Add new file"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+
+                            {showAddFileMenu && (
+                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[150px]">
+                                    <button
+                                        onClick={() => addFile('html')}
+                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 first:rounded-t-lg"
+                                    >
+                                        New HTML file
+                                    </button>
+                                    <button
+                                        onClick={() => addFile('css')}
+                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                    >
+                                        New CSS file
+                                    </button>
+                                    <button
+                                        onClick={() => addFile('js')}
+                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 last:rounded-b-lg"
+                                    >
+                                        New JS file
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Content Area */}
@@ -444,45 +450,52 @@ export default function CreatorHtmlPage() {
                             </div>
                         )}
 
-                        {/* HTML TAB */}
-                        {activeTab === 'html' && (
+                        {/* CODE EDITOR TAB (for all files) */}
+                        {activeTab === 'code' && activeFile && (
                             <div className="h-full flex flex-col p-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <Label className="mb-2 font-mono text-xs text-gray-500 uppercase tracking-widest">Index.html</Label>
+                                <Label className="mb-2 font-mono text-xs text-gray-500 uppercase tracking-widest">{activeFile.name}</Label>
                                 <textarea
-                                    value={htmlCode}
-                                    onChange={(e) => setHtmlCode(e.target.value)}
+                                    value={activeFile.content}
+                                    onChange={(e) => updateFileContent(e.target.value)}
                                     className="flex-1 w-full bg-[#1e1e1e] text-gray-300 p-6 rounded-2xl font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-4 focus:ring-gray-900/20"
-                                    placeholder="<!-- Write your HTML here -->"
+                                    placeholder={`// Write your ${activeFile.type.toUpperCase()} code here`}
                                     spellCheck={false}
                                 />
                             </div>
                         )}
 
-                        {/* CSS TAB */}
-                        {activeTab === 'css' && (
-                            <div className="h-full flex flex-col p-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <Label className="mb-2 font-mono text-xs text-gray-500 uppercase tracking-widest">Styles.css</Label>
-                                <textarea
-                                    value={cssCode}
-                                    onChange={(e) => setCssCode(e.target.value)}
-                                    className="flex-1 w-full bg-[#1e1e1e] text-blue-300 p-6 rounded-2xl font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-4 focus:ring-gray-900/20"
-                                    placeholder="/* Write your CSS here */"
-                                    spellCheck={false}
-                                />
-                            </div>
-                        )}
+                        {/* TRANSLATION TAB */}
+                        {activeTab === 'translation' && (
+                            <div className="h-full flex flex-col p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <div className="mb-4">
+                                    <h2 className="text-xl font-black text-gray-900 mb-2">Template Translations</h2>
+                                    <p className="text-sm text-gray-500 mb-4">
+                                        Add translations as a JSON object. Supported languages: en, hi, es, fr, de, ar, zh, pt, bn, ru, ur, id, te
+                                    </p>
+                                </div>
 
-                        {/* JS TAB */}
-                        {activeTab === 'js' && (
-                            <div className="h-full flex flex-col p-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <Label className="mb-2 font-mono text-xs text-gray-500 uppercase tracking-widest">Script.js</Label>
-                                <textarea
-                                    value={jsCode}
-                                    onChange={(e) => setJsCode(e.target.value)}
-                                    className="flex-1 w-full bg-[#1e1e1e] text-yellow-300 p-6 rounded-2xl font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-4 focus:ring-gray-900/20"
-                                    placeholder="// Write your JavaScript here"
-                                    spellCheck={false}
-                                />
+                                <div className="flex-1 flex flex-col">
+                                    <Label className="mb-2 font-mono text-xs text-gray-500 uppercase tracking-widest">
+                                        Translations (JSON)
+                                    </Label>
+                                    <textarea
+                                        value={JSON.stringify(translations, null, 2)}
+                                        onChange={(e) => {
+                                            try {
+                                                const parsed = JSON.parse(e.target.value);
+                                                setTranslations(parsed);
+                                            } catch (err) {
+                                                // Invalid JSON, just update the text (will show error on blur)
+                                            }
+                                        }}
+                                        className="flex-1 w-full bg-[#1e1e1e] text-green-300 p-6 rounded-2xl font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-4 focus:ring-gray-900/20"
+                                        placeholder={`{\n  "en": { "key": "value" },\n  "hi": { "key": "मान" }\n}`}
+                                        spellCheck={false}
+                                    />
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Supported languages: en, hi, es, fr, de, ar, zh, pt, bn, ru, ur, id, te
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -540,8 +553,8 @@ export default function CreatorHtmlPage() {
                     <div className={`flex-1 p-4 pt-20 transition-all duration-300 flex items-center justify-center ${viewMode === 'mobile' ? 'bg-gray-200/50' : ''}`}>
                         {/* Dynamic Preview Container */}
                         <div className={`bg-white transition-all duration-500 overflow-hidden relative shadow-lg ${viewMode === 'mobile'
-                                ? 'w-[375px] h-[667px] rounded-[3rem] border-8 border-gray-800'
-                                : 'w-full h-full rounded-[2rem] border-4 border-gray-200'
+                            ? 'w-[375px] h-[667px] rounded-[3rem] border-8 border-gray-800'
+                            : 'w-full h-full rounded-[2rem] border-4 border-gray-200'
                             }`}>
                             {viewMode === 'mobile' && (
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-xl z-10" />
