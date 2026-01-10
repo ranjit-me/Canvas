@@ -19,12 +19,14 @@ const CredentialsSchema = z.object({
 declare module "next-auth/jwt" {
   interface JWT {
     id: string | undefined;
+    creatorStatus: string | null | undefined;
   }
 }
 
 declare module "@auth/core/jwt" {
   interface JWT {
     id: string | undefined;
+    creatorStatus: string | null | undefined;
   }
 }
 
@@ -83,12 +85,30 @@ export default {
       if (token.id) {
         session.user.id = token.id;
       }
+      if (token.creatorStatus) {
+        session.user.creatorStatus = token.creatorStatus;
+      }
 
       return session;
     },
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.creatorStatus = user.creatorStatus;
+      } else if (token.id) {
+        // Refresh creator status from DB for subsequent requests
+        try {
+          const [freshUser] = await db
+            .select({ creatorStatus: users.creatorStatus })
+            .from(users)
+            .where(eq(users.id, token.id as string));
+
+          if (freshUser) {
+            token.creatorStatus = freshUser.creatorStatus;
+          }
+        } catch (error) {
+          console.error("Error refreshing user status:", error);
+        }
       }
 
       return token;

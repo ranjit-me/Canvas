@@ -19,6 +19,7 @@ export function transformTemplateCode(rawCode: string): string {
 
     while ((match = returnRegex.exec(code)) !== null) {
         const body = match[1] || match[2];
+        if (!body) continue;
         const tagCount = (body.match(/<[a-z]+/gi) || []).length;
         if (tagCount > maxTags) {
             maxTags = tagCount;

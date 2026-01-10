@@ -25,6 +25,7 @@ import {
     LogOut,
     Menu,
     X,
+    PenTool,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -214,7 +215,6 @@ export const HorizontalNav = () => {
 
     const navItems: NavItem[] = [
         { icon: Home, label: t("nav.home"), href: "/dashboard" },
-        { icon: FolderClock, label: t("nav.orders"), href: "/dashboard/projects" },
         { icon: Heart, label: t("nav.valentine"), href: "/web/valentine-week" },
         { icon: PartyPopper, label: t("nav.birthday"), href: "/web/birthday" },
         { icon: CalendarHeart, label: t("nav.anniversary"), href: "/web/anniversary" },
@@ -348,6 +348,25 @@ export const HorizontalNav = () => {
                                             <Settings className="size-4" />
                                             <span>Settings</span>
                                         </Link>
+                                    </DropdownMenuItem>
+                                    {/* Dynamic Creator Menu Item */}
+                                    <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+                                        {session?.user?.creatorStatus === 'approved' ? (
+                                            <Link href="/creator/html">
+                                                <PenTool className="size-4" />
+                                                <span>Creator Dashboard</span>
+                                            </Link>
+                                        ) : session?.user?.creatorStatus === 'pending' ? (
+                                            <Link href="/creator/application-status">
+                                                <PenTool className="size-4" />
+                                                <span>Application Status</span>
+                                            </Link>
+                                        ) : (
+                                            <Link href="/creator/apply">
+                                                <PenTool className="size-4" />
+                                                <span>Become a Creator</span>
+                                            </Link>
+                                        )}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="gap-2 text-red-600 dark:text-red-400 cursor-pointer">

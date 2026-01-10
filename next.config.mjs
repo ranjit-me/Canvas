@@ -19,6 +19,10 @@ const nextConfig = {
         hostname: "canva-clone-ali.vercel.app",
       },
       {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
       },

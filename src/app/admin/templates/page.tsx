@@ -40,18 +40,16 @@ import { SiteSettingsSection } from "@/components/admin/SiteSettingsSection";
 import { useGetHtmlTemplates } from "@/features/html-templates/api/use-get-html-templates";
 import { useUpdateHtmlTemplate } from "@/features/html-templates/api/use-update-html-template";
 import { CategoryManagement } from "@/features/categories/components/category-management";
+import { CreatorManagement } from "@/features/creators/components/CreatorManagement";
 import { useGetCategories } from "@/features/categories/api/use-get-categories";
 import { AdminTemplateCard } from "@/components/admin/AdminTemplateCard";
 import { useDeleteWebTemplate } from "@/features/web-projects/api/use-delete-web-template";
 import { useDeleteHtmlTemplate } from "@/features/html-templates/api/use-delete-html-template";
 
 const SIDEBAR_ITEMS = [
-    { id: "users", label: "User Management", icon: Users, href: "/admin/users" },
-    { id: "templates", label: "Template Management", icon: LayoutTemplate, href: "/admin/templates" },
-    { id: "categories", label: "Category Management", icon: Tags, href: "/admin/categories" },
-    { id: "orders", label: "Orders & Payments Dashboard", icon: CreditCard, href: "/admin/orders" },
-    { id: "analytics", label: "Analytics & Insights", icon: BarChart3, href: "/admin/analytics" },
-    { id: "settings", label: "Site Settings", icon: Settings, href: "/admin/settings" },
+    { id: "templates", label: "Template Management", icon: LayoutTemplate },
+    { id: "categories", label: "Category Management", icon: Tags },
+    { id: "creators", label: "Creator Management", icon: Users },
 ];
 
 export default function AdminDashboardPage() {
@@ -188,538 +186,265 @@ export default function AdminDashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white flex">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-gray-200 flex flex-col">
-                {/* Logo/Title */}
-                <div className="p-6 border-b border-gray-200">
-                    <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                </div>
-
-                {/* Navigation */}
-                <nav className="flex-1 p-4">
-                    <ul className="space-y-2">
+        <div className="min-h-screen bg-white flex flex-col">
+            {/* Sub-navigation */}
+            <div className="border-b border-gray-200 bg-white sticky top-16 z-40">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+                    <nav className="flex gap-8 h-full">
                         {SIDEBAR_ITEMS.map((item) => {
                             const Icon = item.icon;
                             const isActive = activeSection === item.id;
 
                             return (
-                                <li key={item.id}>
-                                    <button
-                                        onClick={() => setActiveSection(item.id)}
-                                        className={cn(
-                                            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
-                                            isActive
-                                                ? "bg-gray-900 text-white"
-                                                : "text-gray-700 hover:bg-gray-100"
-                                        )}
-                                    >
-                                        <Icon className="w-5 h-5" />
-                                        <span className="font-medium">{item.label}</span>
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </nav>
-            </aside>
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col">
-                {/* Header */}
-                <header className="border-b border-gray-200 px-8 py-4 flex items-center justify-end gap-4">
-                    <button
-                        onClick={() => syncMutation.mutate()}
-                        disabled={syncMutation.isPending}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                    >
-                        {syncMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <RefreshCcw className="w-4 h-4" />
-                        )}
-                        Sync Template
-                    </button>
-                    <button
-                        onClick={() => {
-                            localStorage.removeItem("admin_auth");
-                            router.push("/admin/login");
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Log Out
-                    </button>
-                </header>
-
-                {/* Content Area */}
-                <main className="flex-1 p-8 overflow-auto">
-                    {activeSection === "templates" && (
-                        <div className="space-y-6">
-                            {/* Pending HTML Templates Alert */}
-                            {pendingHtmlTemplates?.templates && pendingHtmlTemplates.templates.length > 0 && (
-                                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 mb-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-3 w-3 relative">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
-                                            </div>
-                                            <h3 className="text-lg font-bold text-gray-900">Pending HTML Templates</h3>
-                                        </div>
-                                        <span className="px-3 py-1 bg-yellow-200 text-yellow-800 text-sm font-bold rounded-full">
-                                            {pendingHtmlTemplates.templates.length} awaiting review
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {pendingHtmlTemplates.templates.map((template: any) => (
-                                            <div key={template.id} className="bg-white rounded-lg border-2 border-yellow-400 p-4">
-                                                <div className="aspect-video bg-gray-100 rounded mb-3 overflow-hidden">
-                                                    {template.thumbnail && (
-                                                        <img src={template.thumbnail} alt={template.name} className="w-full h-full object-cover" />
-                                                    )}
-                                                </div>
-                                                <h4 className="font-bold text-gray-900">{template.name}</h4>
-                                                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{template.description}</p>
-                                                <div className="flex gap-2 mt-3">
-                                                    <button
-                                                        onClick={async () => {
-                                                            await updateHtmlMutation.mutateAsync({
-                                                                id: template.id,
-                                                                status: 'approved',
-                                                                isActive: true
-                                                            });
-                                                        }}
-                                                        className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-                                                    >
-                                                        ✓ Approve
-                                                    </button>
-                                                    <button
-                                                        onClick={async () => {
-                                                            await updateHtmlMutation.mutateAsync({
-                                                                id: template.id,
-                                                                status: 'rejected'
-                                                            });
-                                                        }}
-                                                        className="flex-1 px-3 py-2 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 text-sm font-medium"
-                                                    >
-                                                        ✕ Reject
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            {/* Search and Filters Bar */}
-                            <div className="bg-white border-2 border-gray-200 rounded-xl p-2 flex items-center gap-2 w-full">
-                                <div className="flex-1 relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border-none bg-transparent focus:outline-none focus:ring-0 text-gray-900 placeholder-gray-500 font-medium"
-                                    />
-                                </div>
-
-                                <div className="h-8 w-px bg-gray-200 mx-2" />
-
-                                <select
-                                    value={selectedCategory}
-                                    onChange={(e) => setSelectedCategory(e.target.value)}
-                                    className="px-4 py-2 bg-transparent border-none text-gray-700 font-medium focus:outline-none focus:ring-0 cursor-pointer hover:bg-gray-50 rounded-lg max-w-[200px]"
-                                >
-                                    {categoryOptions.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {cat.label}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                <div className="h-8 w-px bg-gray-200 mx-2" />
-                                <select
-                                    value={selectedSubcategory}
-                                    onChange={(e) => setSelectedSubcategory(e.target.value)}
-                                    disabled={subcategoryOptions.length <= 1}
+                                <button
+                                    key={item.id}
+                                    onClick={() => setActiveSection(item.id)}
                                     className={cn(
-                                        "px-4 py-2 bg-transparent border-none text-gray-700 font-medium focus:outline-none focus:ring-0 rounded-lg max-w-[200px]",
-                                        subcategoryOptions.length <= 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"
+                                        "flex items-center gap-2 h-full px-1 border-b-2 transition-all font-medium text-sm",
+                                        isActive
+                                            ? "border-gray-900 text-gray-900"
+                                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                                     )}
                                 >
-                                    {subcategoryOptions.map((sub) => (
-                                        <option key={sub.id} value={sub.id}>
-                                            {sub.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <Icon className="w-4 h-4" />
+                                    {item.label}
+                                </button>
+                            );
+                        })}
+                    </nav>
 
-                                <div className="h-8 w-px bg-gray-200 mx-2" />
-
-                                <div className="relative">
-                                    <select
-                                        value={sortOption}
-                                        onChange={(e) => setSortOption(e.target.value)}
-                                        className="appearance-none pl-4 pr-10 py-2 bg-transparent border-none text-gray-900 font-medium focus:outline-none focus:ring-0 cursor-pointer hover:bg-gray-50 rounded-lg text-right"
-                                    >
-                                        <option value="newest">Sort by date (Newest)</option>
-                                        <option value="oldest">Sort by date (Oldest)</option>
-                                        <option value="category">Sort by category</option>
-                                        <option value="top-selling">Sort by top selling</option>
-                                        <option value="less-selling">sort by less selling</option>
-                                        <option value="name-asc">Sort by name (A-Z)</option>
-                                        <option value="name-desc">Sort by name (Z-A)</option>
-                                    </select>
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 font-medium">Filter</span>
-                                </div>
-                            </div>
-
-                            {/* Results Stat */}
-                            <div className="flex items-center justify-between">
-                                <p className="text-gray-500">
-                                    Showing <span className="font-bold text-gray-900">{finalDisplayTemplates.length}</span> templates
-                                </p>
-                            </div>
-
-                            {/* Templates Grid */}
-                            {templatesLoading ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                                </div>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => syncMutation.mutate()}
+                            disabled={syncMutation.isPending}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-sm"
+                        >
+                            {syncMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {finalDisplayTemplates?.map((template: any, index: number) => (
-                                        <AdminTemplateCard
-                                            key={`${template.id}-${index}`}
-                                            template={template}
-                                            onPreview={(t) => setPreviewTemplate(t)}
-                                            onEdit={(t) => {
-                                                if (t.isHtmlTemplate) {
-                                                    setSelectedHtmlTemplate(t);
-                                                    setActiveTab("edit");
-                                                } else {
-                                                    setSelectedTemplate(t);
-                                                    setActiveTab("edit");
-                                                }
-                                            }}
-                                            onPricing={(t) => {
-                                                if (t.isHtmlTemplate) {
-                                                    setSelectedHtmlTemplate(t);
-                                                    setActiveTab("pricing");
-                                                } else {
-                                                    setSelectedTemplate(t);
-                                                    setActiveTab("pricing");
-                                                }
-                                            }}
-                                            onReviews={(t) => {
-                                                if (t.isHtmlTemplate) {
-                                                    setSelectedHtmlTemplate(t);
-                                                    setActiveTab("reviews");
-                                                } else {
-                                                    setSelectedTemplate(t);
-                                                    setActiveTab("reviews");
-                                                }
-                                            }}
-                                            onDelete={(t) => {
-                                                if (confirm("Are you sure you want to delete this template?")) {
-                                                    if (t.isHtmlTemplate) {
-                                                        deleteHtmlMutation.mutate({ id: t.id });
-                                                    } else {
-                                                        deleteWebMutation.mutate({ id: t.id });
-                                                    }
-                                                }
-                                            }}
-                                            onToggleStatus={(t) => {
-                                                if (t.isHtmlTemplate) {
-                                                    updateHtmlMutation.mutate({
-                                                        id: t.id,
-                                                        isActive: !t.isActive
-                                                    });
-                                                } else {
-                                                    updateMutation.mutate({
-                                                        id: t.id,
-                                                        isActive: !t.isActive
-                                                    });
-                                                }
-                                            }}
-                                            onToggleFree={(t) => {
-                                                if (t.isHtmlTemplate) {
-                                                    updateHtmlMutation.mutate({
-                                                        id: t.id,
-                                                        isFree: !t.isFree
-                                                    });
-                                                } else {
-                                                    updateMutation.mutate({
-                                                        id: t.id,
-                                                        isFree: !t.isFree
-                                                    });
-                                                }
-                                            }}
-                                        />
-                                    ))}
-                                </div>
+                                <RefreshCcw className="w-4 h-4" />
                             )}
-                        </div>
-                    )}
-
-                    {/* User Management Section */}
-                    {activeSection === "users" && (
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-                                    <p className="text-gray-500">Manage all leads captured from the website</p>
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    Total Leads: <span className="font-bold text-gray-900">{leads?.length || 0}</span>
-                                </div>
-                            </div>
-
-                            {leadsLoading ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                                </div>
-                            ) : leads && leads.length > 0 ? (
-                                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 border-b border-gray-200">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Name</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Contact</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Location</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Interests</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Date</th>
-                                                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 uppercase">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-200">
-                                                {leads.map((lead: any) => (
-                                                    <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
-                                                        <td className="px-4 py-4">
-                                                            <div className="font-medium text-gray-900">{lead.name}</div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="space-y-1">
-                                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                                    <Mail className="w-4 h-4" />
-                                                                    <a href={`mailto:${lead.email}`} className="hover:text-gray-900">
-                                                                        {lead.email}
-                                                                    </a>
-                                                                </div>
-                                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                                    <Phone className="w-4 h-4" />
-                                                                    <a href={`tel:${lead.mobile}`} className="hover:text-gray-900">
-                                                                        {lead.mobile}
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="text-sm text-gray-600">
-                                                                {lead.state && <div>{lead.state},</div>}
-                                                                <div className="font-medium">{lead.country}</div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="flex flex-wrap gap-1">
-                                                                {lead.interests && JSON.parse(lead.interests).slice(0, 2).map((interest: string) => (
-                                                                    <span key={interest} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                                                                        {interest}
-                                                                    </span>
-                                                                ))}
-                                                                {lead.interests && JSON.parse(lead.interests).length > 2 && (
-                                                                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                                                                        +{JSON.parse(lead.interests).length - 2}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="text-sm text-gray-600">
-                                                                {new Date(lead.createdAt).toLocaleDateString()}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                <button
-                                                                    onClick={() => setLeadToDelete(lead)}
-                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                    title="Delete lead"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 border border-gray-200 rounded-lg">
-                                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">No leads yet</h3>
-                                    <p className="text-gray-500">Leads will appear here when users fill out the capture form</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Orders & Payments Dashboard */}
-                    {activeSection === "orders" && (
-                        <div className="space-y-6">
-                            {/* Header with Stats */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-gray-500 font-medium">Total Orders</p>
-                                            <p className="text-3xl font-bold text-gray-900 mt-1">
-                                                {orders?.length || 0}
-                                            </p>
-                                        </div>
-                                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                            <CreditCard className="w-6 h-6 text-blue-600" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-gray-500 font-medium">Active Subscriptions</p>
-                                            <p className="text-3xl font-bold text-gray-900 mt-1">
-                                                {orders?.filter((o: any) => o.status === 'active').length || 0}
-                                            </p>
-                                        </div>
-                                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                            <CheckCircle2 className="w-6 h-6 text-green-600" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm text-gray-500 font-medium">Total Revenue</p>
-                                            <p className="text-3xl font-bold text-gray-900 mt-1">
-                                                ${((orders?.length || 0) * 10).toFixed(2)}
-                                            </p>
-                                        </div>
-                                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                            <DollarSign className="w-6 h-6 text-purple-600" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Filters */}
-                            <div className="flex items-center gap-4">
-                                <select
-                                    value={countryFilter}
-                                    onChange={(e) => setCountryFilter(e.target.value)}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                                >
-                                    <option value="all">All Countries</option>
-                                    <option value="IN">India</option>
-                                    <option value="US">United States</option>
-                                    <option value="GB">United Kingdom</option>
-                                    <option value="DE">Germany</option>
-                                    <option value="FR">France</option>
-                                </select>
-                            </div>
-
-                            {/* Orders Table */}
-                            {ordersLoading ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                                </div>
-                            ) : orders && orders.length > 0 ? (
-                                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 border-b border-gray-200">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Customer</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Subscription ID</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Amount</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Date</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase">Period End</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-200">
-                                                {orders.map((order: any) => (
-                                                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                                                        <td className="px-4 py-4">
-                                                            <div>
-                                                                <div className="font-medium text-gray-900">{order.userName || 'N/A'}</div>
-                                                                <div className="text-sm text-gray-500">{order.userEmail}</div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="text-sm text-gray-600 font-mono">
-                                                                {order.subscriptionId.substring(0, 20)}...
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <span className={cn(
-                                                                "px-2 py-1 text-xs font-bold rounded",
-                                                                order.status === 'active' && "bg-green-100 text-green-700",
-                                                                order.status === 'canceled' && "bg-red-100 text-red-700",
-                                                                order.status === 'past_due' && "bg-yellow-100 text-yellow-700",
-                                                                order.status === 'incomplete' && "bg-gray-100 text-gray-700"
-                                                            )}>
-                                                                {order.status.toUpperCase()}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="font-medium text-gray-900">$10.00</div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="text-sm text-gray-600">
-                                                                {new Date(order.createdAt).toLocaleDateString()}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-4">
-                                                            <div className="text-sm text-gray-600">
-                                                                {order.currentPeriodEnd ? new Date(order.currentPeriodEnd).toLocaleDateString() : 'N/A'}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 border border-gray-200 rounded-lg">
-                                    <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">No orders yet</h3>
-                                    <p className="text-gray-500">Orders will appear here when users make purchases</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {activeSection === "analytics" && (
-                        <div className="text-center py-12">
-                            <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <h2 className="text-xl font-bold text-gray-900 mb-2">Analytics & Insights</h2>
-                            <p className="text-gray-500">Coming soon...</p>
-                        </div>
-                    )}
-
-                    {activeSection === "categories" && (
-                        <CategoryManagement />
-                    )}
-
-                    {activeSection === "settings" && (
-                        <SiteSettingsSection />
-                    )}
-                </main>
+                            Sync Templates
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            {/* Content Area */}
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-auto">
+                {activeSection === "templates" && (
+                    <div className="space-y-6">
+                        {/* Pending HTML Templates Alert */}
+                        {pendingHtmlTemplates?.templates && pendingHtmlTemplates.templates.length > 0 && (
+                            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 mb-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-3 w-3 relative">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-gray-900">Pending HTML Templates</h3>
+                                    </div>
+                                    <span className="px-3 py-1 bg-yellow-200 text-yellow-800 text-sm font-bold rounded-full">
+                                        {pendingHtmlTemplates.templates.length} awaiting review
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {pendingHtmlTemplates.templates.map((template: any) => (
+                                        <div key={template.id} className="bg-white rounded-lg border-2 border-yellow-400 p-4">
+                                            <div className="aspect-video bg-gray-100 rounded mb-3 overflow-hidden">
+                                                {template.thumbnail && (
+                                                    <img src={template.thumbnail} alt={template.name} className="w-full h-full object-cover" />
+                                                )}
+                                            </div>
+                                            <h4 className="font-bold text-gray-900">{template.name}</h4>
+                                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{template.description}</p>
+                                            <div className="flex gap-2 mt-3">
+                                                <button
+                                                    onClick={async () => {
+                                                        await updateHtmlMutation.mutateAsync({
+                                                            id: template.id,
+                                                            status: 'approved',
+                                                            isActive: true
+                                                        });
+                                                    }}
+                                                    className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                                                >
+                                                    ✓ Approve
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        await updateHtmlMutation.mutateAsync({
+                                                            id: template.id,
+                                                            status: 'rejected'
+                                                        });
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 text-sm font-medium"
+                                                >
+                                                    ✕ Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {/* Search and Filters Bar */}
+                        <div className="bg-white border-2 border-gray-200 rounded-xl p-2 flex items-center gap-2 w-full">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border-none bg-transparent focus:outline-none focus:ring-0 text-gray-900 placeholder-gray-500 font-medium"
+                                />
+                            </div>
+
+                            <div className="h-8 w-px bg-gray-200 mx-2" />
+
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="px-4 py-2 bg-transparent border-none text-gray-700 font-medium focus:outline-none focus:ring-0 cursor-pointer hover:bg-gray-50 rounded-lg max-w-[200px]"
+                            >
+                                {categoryOptions.map((cat) => (
+                                    <option key={cat.id} value={cat.id}>
+                                        {cat.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="h-8 w-px bg-gray-200 mx-2" />
+                            <select
+                                value={selectedSubcategory}
+                                onChange={(e) => setSelectedSubcategory(e.target.value)}
+                                disabled={subcategoryOptions.length <= 1}
+                                className={cn(
+                                    "px-4 py-2 bg-transparent border-none text-gray-700 font-medium focus:outline-none focus:ring-0 rounded-lg max-w-[200px]",
+                                    subcategoryOptions.length <= 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"
+                                )}
+                            >
+                                {subcategoryOptions.map((sub) => (
+                                    <option key={sub.id} value={sub.id}>
+                                        {sub.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="h-8 w-px bg-gray-200 mx-2" />
+
+                            <div className="relative">
+                                <select
+                                    value={sortOption}
+                                    onChange={(e) => setSortOption(e.target.value)}
+                                    className="appearance-none pl-4 pr-10 py-2 bg-transparent border-none text-gray-900 font-medium focus:outline-none focus:ring-0 cursor-pointer hover:bg-gray-50 rounded-lg text-right"
+                                >
+                                    <option value="newest">Sort by date (Newest)</option>
+                                    <option value="oldest">Sort by date (Oldest)</option>
+                                    <option value="category">Sort by category</option>
+                                    <option value="top-selling">Sort by top selling</option>
+                                    <option value="less-selling">sort by less selling</option>
+                                    <option value="name-asc">Sort by name (A-Z)</option>
+                                    <option value="name-desc">Sort by name (Z-A)</option>
+                                </select>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 font-medium">Filter</span>
+                            </div>
+                        </div>
+
+                        {/* Results Stat */}
+                        <div className="flex items-center justify-between">
+                            <p className="text-gray-500">
+                                Showing <span className="font-bold text-gray-900">{finalDisplayTemplates.length}</span> templates
+                            </p>
+                        </div>
+
+                        {/* Templates Grid */}
+                        {templatesLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {finalDisplayTemplates?.map((template: any, index: number) => (
+                                    <AdminTemplateCard
+                                        key={`${template.id}-${index}`}
+                                        template={template}
+                                        onPreview={(t) => setPreviewTemplate(t)}
+                                        onEdit={(t) => {
+                                            if (t.isHtmlTemplate) {
+                                                setSelectedHtmlTemplate(t);
+                                                setActiveTab("edit");
+                                            } else {
+                                                setSelectedTemplate(t);
+                                                setActiveTab("edit");
+                                            }
+                                        }}
+                                        onPricing={(t) => {
+                                            if (t.isHtmlTemplate) {
+                                                setSelectedHtmlTemplate(t);
+                                                setActiveTab("pricing");
+                                            } else {
+                                                setSelectedTemplate(t);
+                                                setActiveTab("pricing");
+                                            }
+                                        }}
+                                        onReviews={(t) => {
+                                            if (t.isHtmlTemplate) {
+                                                setSelectedHtmlTemplate(t);
+                                                setActiveTab("reviews");
+                                            } else {
+                                                setSelectedTemplate(t);
+                                                setActiveTab("reviews");
+                                            }
+                                        }}
+                                        onDelete={(t) => {
+                                            if (confirm("Are you sure you want to delete this template?")) {
+                                                if (t.isHtmlTemplate) {
+                                                    deleteHtmlMutation.mutate({ id: t.id });
+                                                } else {
+                                                    deleteWebMutation.mutate({ id: t.id });
+                                                }
+                                            }
+                                        }}
+                                        onToggleStatus={(t) => {
+                                            if (t.isHtmlTemplate) {
+                                                updateHtmlMutation.mutate({
+                                                    id: t.id,
+                                                    isActive: !t.isActive
+                                                });
+                                            } else {
+                                                updateMutation.mutate({
+                                                    id: t.id,
+                                                    isActive: !t.isActive
+                                                });
+                                            }
+                                        }}
+                                        onToggleFree={(t) => {
+                                            if (t.isHtmlTemplate) {
+                                                updateHtmlMutation.mutate({
+                                                    id: t.id,
+                                                    isFree: !t.isFree
+                                                });
+                                            } else {
+                                                updateMutation.mutate({
+                                                    id: t.id,
+                                                    isFree: !t.isFree
+                                                });
+                                            }
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeSection === "categories" && (
+                    <CategoryManagement />
+                )}
+            </main>
 
             {/* Template Details Modal - React Templates */}
             {selectedTemplate && (

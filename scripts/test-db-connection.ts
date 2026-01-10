@@ -1,37 +1,28 @@
-import { neon } from "@neondatabase/serverless";
 import { config } from "dotenv";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
+import * as schema from "../src/db/schema";
 
 config({ path: ".env" });
 
-async function testConnection() {
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql, { schema });
+
+async function main() {
     try {
         console.log("Testing database connection...");
-        console.log("DATABASE_URL:", process.env.DATABASE_URL?.substring(0, 50) + "...");
+        const allUsers = await db.select().from(schema.users).limit(1);
+        console.log("Users found:", allUsers.length);
 
-        const sql = neon(process.env.DATABASE_URL!);
+        console.log("Testing creatorApplications table...");
+        const apps = await db.select().from(schema.creatorApplications).limit(1);
+        console.log("Applications found:", apps.length);
 
-        const result = await sql`SELECT NOW() as current_time`;
-        console.log("✓ Database connection successful!");
-        console.log("Current database time:", result[0].current_time);
-
-        // Test if templateReview table exists
-        const tableCheck = await sql`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_name = 'templateReview'
-    `;
-
-        if (tableCheck.length > 0) {
-            console.log("✓ templateReview table exists");
-        } else {
-            console.log("⚠ templateReview table does NOT exist");
-        }
-
+        process.exit(0);
     } catch (error) {
-        console.error("✗ Database connection failed:");
-        console.error(error);
+        console.error("Database test failed:", error);
         process.exit(1);
     }
 }
 
-testConnection();
+main();

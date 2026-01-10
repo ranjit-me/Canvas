@@ -88,6 +88,25 @@ export default function HtmlTemplateEditor({ template }: HtmlTemplateEditorProps
                 }
             }
 
+            // Inject Translations
+            const translations = template.translations ? template.translations : '{}';
+            const translationScript = `
+                <script>
+                    window.TEMPLATE_TRANSLATIONS = ${translations};
+                    window.CURRENT_LANGUAGE = "en"; 
+                </script>
+            `;
+
+            if (processedHtml.includes('</head>')) {
+                processedHtml = processedHtml.replace('</head>', `${translationScript}</head>`);
+            } else {
+                if (processedHtml.includes('<body>')) {
+                    processedHtml = processedHtml.replace('<body>', `<body>${translationScript}`);
+                } else {
+                    processedHtml = translationScript + processedHtml;
+                }
+            }
+
             // Inject JS before </body>
             if (jsCode) {
                 if (processedHtml.includes('</body>')) {
@@ -99,6 +118,15 @@ export default function HtmlTemplateEditor({ template }: HtmlTemplateEditorProps
 
             return processedHtml;
         }
+
+        // Inject Translations
+        const translations = template.translations ? template.translations : '{}';
+        const translationScript = `
+            <script>
+                window.TEMPLATE_TRANSLATIONS = ${translations};
+                window.CURRENT_LANGUAGE = "en"; 
+            </script>
+        `;
 
         // Legacy/Fragment Mode: Wrap content in default structure
         return `
@@ -112,6 +140,7 @@ export default function HtmlTemplateEditor({ template }: HtmlTemplateEditorProps
 </head>
 <body>
     ${htmlCode}
+    ${translationScript}
     <script>${jsCode}</script>
 </body>
 </html>
@@ -265,10 +294,10 @@ export default function HtmlTemplateEditor({ template }: HtmlTemplateEditorProps
                             onPublish={() => setIsPublishDialogOpen(true)}
                             onEditCode={() => setIsEditMode(true)}
                         />
-                    </div>
+                    </div >
                 )}
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 

@@ -1,144 +1,3 @@
-// import { relations } from "drizzle-orm";
-// import { createInsertSchema } from "drizzle-zod";
-// import {
-//   boolean,
-//   timestamp,
-//   pgTable,
-//   text,
-//   primaryKey,
-//   integer,
-// } from "drizzle-orm/pg-core"
-// import type { AdapterAccountType } from "next-auth/adapters"
-
-// export const users = pgTable("user", {
-//   id: text("id")
-//     .primaryKey()
-//     .$defaultFn(() => crypto.randomUUID()),
-//   name: text("name"),
-//   email: text("email").notNull(),
-//   emailVerified: timestamp("emailVerified", { mode: "date" }),
-//   image: text("image"),
-//   password: text("password"), 
-// });
-
-// export const usersRelations = relations(users, ({ many }) => ({
-//   projects: many(projects),
-// }));
-
-// export const accounts = pgTable(
-//   "account",
-//   {
-//     userId: text("userId")
-//       .notNull()
-//       .references(() => users.id, { onDelete: "cascade" }),
-//     type: text("type").$type<AdapterAccountType>().notNull(),
-//     provider: text("provider").notNull(),
-//     providerAccountId: text("providerAccountId").notNull(),
-//     refresh_token: text("refresh_token"),
-//     access_token: text("access_token"),
-//     expires_at: integer("expires_at"),
-//     token_type: text("token_type"),
-//     scope: text("scope"),
-//     id_token: text("id_token"),
-//     session_state: text("session_state"),
-//   },
-//   (account) => ({
-//     compoundKey: primaryKey({
-//       columns: [account.provider, account.providerAccountId],
-//     }),
-//   })
-// )
-
-// export const sessions = pgTable("session", {
-//   sessionToken: text("sessionToken").primaryKey(),
-//   userId: text("userId")
-//     .notNull()
-//     .references(() => users.id, { onDelete: "cascade" }),
-//   expires: timestamp("expires", { mode: "date" }).notNull(),
-// })
-
-// export const verificationTokens = pgTable(
-//   "verificationToken",
-//   {
-//     identifier: text("identifier").notNull(),
-//     token: text("token").notNull(),
-//     expires: timestamp("expires", { mode: "date" }).notNull(),
-//   },
-//   (verificationToken) => ({
-//     compositePk: primaryKey({
-//       columns: [verificationToken.identifier, verificationToken.token],
-//     }),
-//   })
-// )
-
-// export const authenticators = pgTable(
-//   "authenticator",
-//   {
-//     credentialID: text("credentialID").notNull().unique(),
-//     userId: text("userId")
-//       .notNull()
-//       .references(() => users.id, { onDelete: "cascade" }),
-//     providerAccountId: text("providerAccountId").notNull(),
-//     credentialPublicKey: text("credentialPublicKey").notNull(),
-//     counter: integer("counter").notNull(),
-//     credentialDeviceType: text("credentialDeviceType").notNull(),
-//     credentialBackedUp: boolean("credentialBackedUp").notNull(),
-//     transports: text("transports"),
-//   },
-//   (authenticator) => ({
-//     compositePK: primaryKey({
-//       columns: [authenticator.userId, authenticator.credentialID],
-//     }),
-//   })
-// )
-
-// export const projects = pgTable("project", {
-//   id: text("id")
-//     .primaryKey()
-//     .$defaultFn(() => crypto.randomUUID()),
-//   name: text("name").notNull(),
-//   userId: text("userId")
-//     .notNull()
-//     .references(() => users.id, {
-//       onDelete: "cascade",
-//     }),
-//   json: text("json").notNull(),
-//   height: integer("height").notNull(),
-//   width: integer("width").notNull(),
-//   thumbnailUrl: text("thumbnailUrl"),
-//   isTemplate: boolean("isTemplate"),
-//   isPro: boolean("isPro"),
-//   createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
-//   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull(),
-// });
-
-// export const projectsRelations = relations(projects, ({ one }) => ({
-//   user: one(users, {
-//     fields: [projects.userId],
-//     references: [users.id],
-//   }),
-// }));
-
-// export const projectsInsertSchema = createInsertSchema(projects);
-
-// export const subscriptions = pgTable("subscription", {
-//   id: text("id")
-//     .primaryKey()
-//     .$defaultFn(() => crypto.randomUUID()),
-//   userId: text("userId")
-//     .notNull()
-//     .references(() => users.id, {
-//       onDelete: "cascade"
-//     }),
-//   subscriptionId: text("subscriptionId").notNull(),
-//   customerId: text("customerId").notNull(),
-//   priceId: text("priceId").notNull(),
-//   status: text("status").notNull(),
-//   currentPeriodEnd: timestamp("currentPeriodEnd", { mode: "date" }),
-//   createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
-//   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull(),
-// });
-
 
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -160,6 +19,7 @@ export const users = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   password: text("password"),
+  creatorStatus: text("creatorStatus").default("none"), // none, pending, approved, rejected
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -578,4 +438,45 @@ export const templateCustomizationsRelations = relations(templateCustomizations,
 }));
 
 export const templateCustomizationsInsertSchema = createInsertSchema(templateCustomizations);
+
+// Creator Applications - For users applying to become creators
+export const creatorApplications = pgTable("creatorApplication", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  fullName: text("fullName").notNull(),
+  email: text("email").notNull(),
+  mobile: text("mobile").notNull(),
+  country: text("country").notNull(),
+  state: text("state").notNull(),
+  qualification: text("qualification").notNull(),
+  resumeUrl: text("resumeUrl").notNull(), // URL to uploaded resume
+  profilePhotoUrl: text("profilePhotoUrl").notNull(), // URL to uploaded profile photo
+  portfolioUrl: text("portfolioUrl"), // Optional portfolio/website URL
+  bio: text("bio"), // About the creator
+  specialization: text("specialization"), // e.g., "Birthday Cards", "Wedding Invitations"
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  adminNotes: text("adminNotes"), // Admin feedback/notes
+  submittedAt: timestamp("submittedAt", { mode: "date" })
+    .notNull()
+    .defaultNow(),
+  reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+  reviewedBy: text("reviewedBy").references(() => users.id), // Admin who reviewed
+});
+
+export const creatorApplicationsRelations = relations(creatorApplications, ({ one }) => ({
+  user: one(users, {
+    fields: [creatorApplications.userId],
+    references: [users.id],
+  }),
+  reviewer: one(users, {
+    fields: [creatorApplications.reviewedBy],
+    references: [users.id],
+  }),
+}));
+
+export const creatorApplicationsInsertSchema = createInsertSchema(creatorApplications);
 

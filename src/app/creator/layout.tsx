@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -28,27 +29,47 @@ const SIDEBAR_ITEMS = [
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const [isAuthorized, setIsAuthorized] = useState(false);
+    const { data: session, status } = useSession();
 
+    // Allow access to application and status pages without approval
+    const isPublicCreatorPage = pathname === "/creator/apply" || pathname === "/creator/application-status";
     const isLoginPage = pathname === "/creator/login";
 
     useEffect(() => {
-        if (isLoginPage) return;
+        // Don't redirect on public creator pages or login page
+        if (isPublicCreatorPage || isLoginPage) return;
 
-        const auth = localStorage.getItem("creator_auth");
-        if (auth === "authorized") {
-            setIsAuthorized(true);
-        } else {
-            router.push("/creator/login");
+        // Check if user is authenticated
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+            router.push("/sign-in");
+            return;
         }
-    }, [router, isLoginPage]);
 
-    if (!isAuthorized && !isLoginPage) {
+        // For other creator pages, check if approved
+        if (session?.user?.creatorStatus !== 'approved') {
+            // Redirect based on status
+            if (session?.user?.creatorStatus === 'pending') {
+                router.push("/creator/application-status");
+            } else {
+                router.push("/creator/apply");
+            }
+        }
+    }, [session, status, router, isPublicCreatorPage, isLoginPage, pathname]);
+
+    // Show loading while checking auth
+    if (status === "loading") {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
             </div>
         );
+    }
+
+    // For public pages (apply, application-status), render without sidebar
+    if (isPublicCreatorPage) {
+        return <>{children}</>;
     }
 
     if (isLoginPage) {
@@ -104,19 +125,18 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
                     {/* Login/Logout Button */}
                     <button
                         onClick={() => {
-                            if (isAuthorized) {
-                                localStorage.removeItem("creator_auth");
-                                router.push("/creator/login");
+                            if (session) {
+                                router.push("/dashboard");
                             } else {
-                                router.push("/creator/login");
+                                router.push("/sign-in");
                             }
                         }}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 font-medium text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md flex-shrink-0"
                     >
-                        {isAuthorized ? (
+                        {session ? (
                             <>
-                                <LogOut className="w-4 h-4" />
-                                <span>Logout</span>
+                                <ChevronLeft className="w-4 h-4" />
+                                <span>Dashboard</span>
                             </>
                         ) : (
                             <>

@@ -7,18 +7,58 @@ import {
     Code,
     Eye,
     Star,
-    ArrowRight
+    ArrowRight,
+    Loader2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { CreatorStatsCard } from "@/features/creators/components/CreatorStatsCard";
+import { CreatorTemplateCard } from "@/features/creators/components/CreatorTemplateCard";
+
+interface CreatorStats {
+    totalTemplates: number;
+    totalSales: number;
+    totalEarnings: number;
+    averageRating: number;
+    totalReviews: number;
+    earningsByCountry: Record<string, number>;
+    earningsByState: Record<string, number>;
+    templates: any[];
+}
 
 export default function CreatorDashboardHome() {
     const router = useRouter();
+    const { data: session, status } = useSession();
+    const [stats, setStats] = useState<CreatorStats | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const stats = [
-        { label: "My Templates", value: "0", icon: Code, color: "blue" },
-        { label: "Live Previews", value: "0", icon: Eye, color: "indigo" },
-        { label: "Rating", value: "5.0", icon: Star, color: "yellow" },
-    ];
+    useEffect(() => {
+        const fetchStats = async () => {
+            if (status !== "authenticated" || !session?.user?.id) return;
+
+            try {
+                const response = await fetch(`/api/creator-analytics/${session.user.id}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch analytics");
+                }
+                const data = await response.json();
+                setStats(data.stats);
+            } catch (err) {
+                console.error("Error loading stats:", err);
+                setError("Failed to load your dashboard data. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (status === "authenticated") {
+            fetchStats();
+        } else if (status === "unauthenticated") {
+            router.push("/creator/login");
+        }
+    }, [status, session, router]);
 
     const quickActions = [
         {
@@ -37,8 +77,30 @@ export default function CreatorDashboardHome() {
         }
     ];
 
+    if (status === "loading" || loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                <p className="text-red-500 font-medium">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-6xl mx-auto space-y-12">
+        <div className="max-w-6xl mx-auto space-y-12 pb-20">
             {/* Welcome Banner */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -49,10 +111,10 @@ export default function CreatorDashboardHome() {
                 <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
                     <div className="flex-1 text-center md:text-left">
                         <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">
-                            Welcome to <span className="text-blue-600 tracking-tighter">Creator Studio</span>
+                            Welcome back, <span className="text-blue-600 tracking-tighter">{session?.user?.name || "Creator"}</span>
                         </h1>
                         <p className="text-xl text-gray-500 font-medium max-w-xl leading-relaxed">
-                            Upload your raw code and transform it into an interactive gift experience in seconds.
+                            Here's what's happening with your templates today.
                         </p>
                     </div>
                     <motion.div
@@ -66,24 +128,27 @@ export default function CreatorDashboardHome() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {stats.map((stat, i) => {
-                    const Icon = stat.icon;
-                    return (
-                        <motion.div
-                            key={stat.label}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="bg-white border border-gray-100 p-8 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow"
-                        >
-                            <div className={`w-12 h-12 bg-${stat.color}-50 rounded-xl flex items-center justify-center mb-6`}>
-                                <Icon className={`w-6 h-6 text-${stat.color}-500`} />
-                            </div>
-                            <p className="text-sm font-black text-gray-400 uppercase tracking-widest mb-1">{stat.label}</p>
-                            <p className="text-3xl font-black text-gray-900">{stat.value}</p>
-                        </motion.div>
-                    );
-                })}
+                <CreatorStatsCard
+                    label="My Templates"
+                    value={stats?.totalTemplates || 0}
+                    icon={Code}
+                    color="blue"
+                    delay={0}
+                />
+                <CreatorStatsCard
+                    label="Total Earnings"
+                    value={`₹${stats?.totalEarnings?.toLocaleString() || "0"}`}
+                    icon={Eye} // Should probably be DollarSign but aligning with existing mockup pref, let's swap for DollarSign actually
+                    color="indigo"
+                    delay={0.1}
+                />
+                <CreatorStatsCard
+                    label="Average Rating"
+                    value={stats?.averageRating?.toFixed(1) || "0.0"}
+                    icon={Star}
+                    color="yellow"
+                    delay={0.2}
+                />
             </div>
 
             {/* Quick Actions */}
@@ -116,6 +181,44 @@ export default function CreatorDashboardHome() {
                         </motion.button>
                     );
                 })}
+            </div>
+
+            {/* My Templates Section */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-black text-gray-900">Recent Templates</h2>
+                    <button
+                        onClick={() => router.push('/creator/templates')}
+                        className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                        View All
+                    </button>
+                </div>
+
+                {stats?.templates && stats.templates.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {stats.templates.map((template, i) => (
+                            <CreatorTemplateCard key={template.id} template={template} index={i} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="bg-gray-50 rounded-[2rem] p-12 text-center border border-dashed border-gray-200">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                            <Code className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">No templates yet</h3>
+                        <p className="text-gray-500 max-w-sm mx-auto mb-6">
+                            Upload your first template to start earning money from your creative work.
+                        </p>
+                        <button
+                            onClick={() => router.push('/creator/upload')}
+                            className="bg-blue-600 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Create Template
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

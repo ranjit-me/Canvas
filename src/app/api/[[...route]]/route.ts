@@ -15,6 +15,8 @@ import categories from "./categories";
 import subcategories from "./subcategories";
 import migrate from "./migrate";
 import migrateThumbnails from "./migrate-thumbnails";
+import creatorApplications from "./creator-applications";
+import creatorAnalytics from "./creator-analytics";
 
 import authConfig from "@/auth.config";
 
@@ -45,7 +47,9 @@ const routes = app
   .route("/categories", categories)
   .route("/subcategories", subcategories)
   .route("/migrate", migrate)
-  .route("/migrate-thumbnails", migrateThumbnails);
+  .route("/migrate-thumbnails", migrateThumbnails)
+  .route("/creator-applications", creatorApplications)
+  .route("/creator-analytics", creatorAnalytics);
 
 export const GET = handle(app);
 export const POST = handle(app);

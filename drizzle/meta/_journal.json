@@ -64,6 +64,13 @@
       "when": 1767500696734,
       "tag": "0008_productive_kronos",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1768024572464,
+      "tag": "0009_add_mobile_to_applications",
+      "breakpoints": true
     }
   ]
 }

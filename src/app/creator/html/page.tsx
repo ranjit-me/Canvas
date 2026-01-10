@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Upload, Eye, Save, Send } from "lucide-react";
+import { Loader2, Upload, Eye, Save, Send, Plus, X, Pencil, FileCode, Languages, Settings, Rocket, Sparkles, Monitor, Tablet, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,11 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useGetCategories } from "@/features/categories/api/use-get-categories";
-import { Plus, X, Pencil } from "lucide-react";
+import { PricingDialog } from "@/features/html-templates/components/PricingDialog";
+import { DEFAULT_PRICING_BY_COUNTRY } from "@/lib/pricing";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 
 // File type definition
 interface CodeFile {
@@ -40,19 +44,24 @@ export default function CreatorHtmlPage() {
     const [thumbnail, setThumbnail] = useState("");
     const [price, setPrice] = useState(0);
     const [isFree, setIsFree] = useState(true);
-    const [showPreview, setShowPreview] = useState(false);
     const [savedTemplateId, setSavedTemplateId] = useState<string | null>(null);
+    const [pricingByCountry, setPricingByCountry] = useState<Record<string, number>>({ ...DEFAULT_PRICING_BY_COUNTRY });
+    const [isPricingOpen, setIsPricingOpen] = useState(false);
+    const { language: previewLanguage } = useLanguage();
+
+    // Redesigned states
+    const [activeMainTab, setActiveMainTab] = useState<'info' | 'translation' | 'editor'>('editor');
+    const [showPreview, setShowPreview] = useState(true);
 
     // File management state
     const [files, setFiles] = useState<CodeFile[]>([
-        { id: '1', name: 'index.html', type: 'html', content: '' },
-        { id: '2', name: 'styles.css', type: 'css', content: '' },
-        { id: '3', name: 'script.js', type: 'js', content: '' }
+        { id: 'html', name: 'index.html', type: 'html', content: '' },
+        { id: 'css', name: 'styles.css', type: 'css', content: '' },
+        { id: 'js', name: 'script.js', type: 'js', content: '' }
     ]);
-    const [activeFileId, setActiveFileId] = useState('1');
+    const [activeFileId, setActiveFileId] = useState('html');
     const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
     const [renameValue, setRenameValue] = useState('');
-    const [showAddFileMenu, setShowAddFileMenu] = useState(false);
 
     const createMutation = useCreateHtmlTemplate();
     const publishMutation = usePublishHtmlTemplate();
@@ -75,17 +84,17 @@ export default function CreatorHtmlPage() {
         ));
     };
 
-    const closeFile = (fileId: string) => {
+    const removeFile = (fileId: string) => {
         const fileIndex = files.findIndex(f => f.id === fileId);
         const newFiles = files.filter(f => f.id !== fileId);
 
         if (newFiles.length === 0) {
-            return; // Don't close the last file
+            return; // Don't remove the last file
         }
 
         setFiles(newFiles);
 
-        // If closing active file, switch to adjacent file
+        // If removing active file, switch to adjacent file
         if (fileId === activeFileId) {
             const newActiveIndex = Math.max(0, fileIndex - 1);
             setActiveFileId(newFiles[newActiveIndex].id);
@@ -113,31 +122,9 @@ export default function CreatorHtmlPage() {
 
         setFiles([...files, newFile]);
         setActiveFileId(newFile.id);
-        setShowAddFileMenu(false);
     };
 
-    const startRename = (fileId: string, currentName: string) => {
-        setRenamingFileId(fileId);
-        setRenameValue(currentName);
-    };
 
-    const finishRename = () => {
-        if (renamingFileId && renameValue.trim()) {
-            setFiles(files.map(f =>
-                f.id === renamingFileId ? { ...f, name: renameValue.trim() } : f
-            ));
-        }
-        setRenamingFileId(null);
-        setRenameValue('');
-    };
-
-    const cancelRename = () => {
-        setRenamingFileId(null);
-        setRenameValue('');
-    };
-
-    // Translation state
-    const [activeTab, setActiveTab] = useState<'info' | 'code' | 'translation'>('info');
     const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({
         en: {}, hi: {}, es: {}, fr: {}, de: {}, ar: {}, zh: {}, pt: {}, bn: {}, ru: {}, ur: {}, id: {}, te: {},
     });
@@ -170,6 +157,7 @@ export default function CreatorHtmlPage() {
             thumbnail,
             price,
             isFree,
+            pricingByCountry: JSON.stringify(pricingByCountry),
             translations: JSON.stringify(translations),
         });
     };
@@ -192,194 +180,240 @@ export default function CreatorHtmlPage() {
 
         let preview = htmlFile?.content || '';
 
-        // If it's NOT a full document, wrap it
-        if (!preview.includes('<!DOCTYPE html>') && !preview.includes('<html')) {
-            preview = `
-                <!DOCTYPE html>
-                <html>
-                    <head></head>
-                    <body>
-                        ${preview}
-                    </body>
-                </html>
+        // Check if it's already a full HTML document
+        const isFullDocument = preview.trim().toLowerCase().startsWith('<!doctype html') ||
+            preview.trim().toLowerCase().startsWith('<html');
+
+        if (isFullDocument) {
+            let processedHtml = preview;
+
+            // Inject CSS into <head>
+            if (cssFile?.content) {
+                if (processedHtml.includes('</head>')) {
+                    processedHtml = processedHtml.replace('</head>', `<style>${cssFile.content}</style></head>`);
+                } else {
+                    processedHtml = processedHtml.replace('<html>', `<html><head><style>${cssFile.content}</style></head>`);
+                }
+            }
+
+            // Inject Translations
+            const translationsStr = JSON.stringify(translations);
+            const translationScript = `
+                <script>
+                    window.TEMPLATE_TRANSLATIONS = ${translationsStr};
+                    window.CURRENT_LANGUAGE = "${previewLanguage}"; 
+                </script>
             `;
-        }
 
-        // Inject CSS if present
-        if (cssFile?.content?.trim()) {
-            if (preview.includes('</head>')) {
-                preview = preview.replace('</head>', `<style>${cssFile.content}</style></head>`);
+            if (processedHtml.includes('</head>')) {
+                processedHtml = processedHtml.replace('</head>', `${translationScript}</head>`);
             } else {
-                preview = `<style>${cssFile.content}</style>` + preview;
+                if (processedHtml.includes('<body>')) {
+                    processedHtml = processedHtml.replace('<body>', `<body>${translationScript}`);
+                } else {
+                    processedHtml = translationScript + processedHtml;
+                }
             }
+
+            // Inject JS before </body>
+            if (jsFile?.content) {
+                if (processedHtml.includes('</body>')) {
+                    processedHtml = processedHtml.replace('</body>', `<script>${jsFile.content}</script></body>`);
+                } else {
+                    processedHtml = processedHtml.replace('</html>', `<script>${jsFile.content}</script></html>`);
+                }
+            }
+
+            return processedHtml;
         }
 
-        // Inject JS if present
-        if (jsFile?.content?.trim()) {
-            if (preview.includes('</body>')) {
-                preview = preview.replace('</body>', `<script>${jsFile.content}</script></body>`);
-            } else {
-                preview = preview + `<script>${jsFile.content}</script>`;
-            }
-        }
-
-        return preview;
+        // Legacy/Fragment Mode: Wrap content in default structure
+        const translationStr = JSON.stringify(translations);
+        return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${templateName || 'Template'}</title>
+    <style>${cssFile?.content || ''}</style>
+    <script>
+        window.TEMPLATE_TRANSLATIONS = ${translationStr};
+        window.CURRENT_LANGUAGE = "${previewLanguage}"; 
+    </script>
+</head>
+<body>
+    ${preview}
+    <script>${jsFile?.content || ''}</script>
+</body>
+</html>
+        `.trim();
     };
 
     return (
-        <div className="h-screen bg-gray-100 p-8 flex flex-col overflow-hidden font-sans">
-            {/* Outer Container with Siri-like hover animation */}
-            <div className="flex-1 bg-white rounded-[3rem] shadow-2xl overflow-hidden flex relative transition-all duration-500 ease-out hover:shadow-[0_0_60px_rgba(59,130,246,0.5)] hover:scale-[1.02]">
+        <div className="min-h-screen font-sans overflow-hidden flex flex-col">
+            <PricingDialog
+                isOpen={isPricingOpen}
+                onOpenChange={setIsPricingOpen}
+                pricing={pricingByCountry}
+                onChange={(country, value) => {
+                    setPricingByCountry(prev => ({
+                        ...prev,
+                        [country]: value
+                    }));
+                    if (country === 'US' || country === 'OTHER') {
+                        setPrice(value);
+                    }
+                }}
+            />
 
-                {/* Left Pane: Tabs & Editor */}
-                <div className="w-[45%] flex flex-col border-r-4 border-gray-900">
-                    {/* Tab Navigation - File Tabs Style */}
-                    <div className="flex items-center px-4 pt-4 pb-2 gap-2 overflow-x-auto bg-gray-50 border-b-2 border-gray-200">
-                        {/* Static Tabs (Template Info, Translation) */}
+            {/* Main Header */}
+            <header className="border-b-2 border-black py-3 px-6 sticky top-0 z-50 bg-white">
+                <div className="flex items-center justify-between max-w-[1800px] mx-auto">
+                    {/* Left: Main Tabs */}
+                    <div className="flex items-center gap-2">
                         <button
-                            onClick={() => setActiveTab('info')}
-                            className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-all whitespace-nowrap ${activeTab === 'info'
-                                ? 'bg-white text-gray-900 border-b-2 border-blue-500'
-                                : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                }`}
+                            onClick={() => setActiveMainTab('info')}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${activeMainTab === 'info' ? 'bg-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black' : 'hover:bg-white/40 text-gray-700 border-transparent'}`}
                         >
                             Template Information
                         </button>
-
                         <button
-                            onClick={() => setActiveTab('translation')}
-                            className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-all whitespace-nowrap ${activeTab === 'translation'
-                                ? 'bg-white text-gray-900 border-b-2 border-blue-500'
-                                : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                }`}
+                            onClick={() => setActiveMainTab('translation')}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${activeMainTab === 'translation' ? 'bg-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black' : 'hover:bg-white/40 text-gray-700 border-transparent'}`}
                         >
                             Translation
                         </button>
+                    </div>
 
-                        <div className="w-px h-6 bg-gray-300 mx-2"></div>
-
-                        {/* File Tabs */}
-                        {files.map((file) => (
-                            <div
-                                key={file.id}
-                                onClick={() => {
-                                    setActiveTab('code');
-                                    setActiveFileId(file.id);
-                                }}
-                                className={`group flex items-center gap-2 px-3 py-2 rounded-t-lg text-sm cursor-pointer transition-all ${activeTab === 'code' && activeFileId === file.id
-                                    ? 'bg-white text-blue-600 font-semibold border-b-2 border-blue-500'
-                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                    }`}
-                            >
-                                {/* File name or rename input */}
-                                {renamingFileId === file.id ? (
-                                    <input
-                                        type="text"
-                                        value={renameValue}
-                                        onChange={(e) => setRenameValue(e.target.value)}
-                                        onBlur={finishRename}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') finishRename();
-                                            if (e.key === 'Escape') cancelRename();
+                    {/* Middle: File Management */}
+                    <div className="flex items-center gap-2 rounded-2xl p-1 border-2 border-black bg-white">
+                        <div className="flex items-center gap-1.5 p-1 rounded-xl">
+                            {files.map((file) => (
+                                <div key={file.id} className="relative group">
+                                    <div
+                                        onClick={() => {
+                                            setActiveMainTab('editor');
+                                            setActiveFileId(file.id);
                                         }}
-                                        className="bg-white border border-blue-500 rounded px-1 text-xs outline-none"
-                                        autoFocus
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                ) : (
-                                    <>
-                                        <span className="text-xs">{file.name}</span>
-
-                                        {/* Rename button */}
+                                        onDoubleClick={() => {
+                                            setRenamingFileId(file.id);
+                                            setRenameValue(file.name);
+                                        }}
+                                        className={`px-4 py-2 rounded-lg font-mono text-xs font-bold flex items-center gap-2 transition-all border-2 cursor-pointer ${activeFileId === file.id && activeMainTab === 'editor' ? 'bg-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black' : 'hover:bg-white/30 text-gray-600 border-transparent'}`}
+                                    >
+                                        <FileCode className="w-4 h-4" />
+                                        {renamingFileId === file.id ? (
+                                            <input
+                                                autoFocus
+                                                value={renameValue}
+                                                onChange={(e) => setRenameValue(e.target.value)}
+                                                onBlur={() => {
+                                                    if (renameValue.trim()) {
+                                                        setFiles(files.map(f => f.id === file.id ? { ...f, name: renameValue.trim() } : f));
+                                                    }
+                                                    setRenamingFileId(null);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && renameValue.trim()) {
+                                                        setFiles(files.map(f => f.id === file.id ? { ...f, name: renameValue.trim() } : f));
+                                                        setRenamingFileId(null);
+                                                    } else if (e.key === 'Escape') {
+                                                        setRenamingFileId(null);
+                                                    }
+                                                }}
+                                                className="bg-transparent border-none outline-none w-24 font-mono text-xs p-0"
+                                            />
+                                        ) : (
+                                            <span>{file.name}</span>
+                                        )}
+                                    </div>
+                                    {file.id !== 'html' && file.id !== 'css' && file.id !== 'js' && (
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                startRename(file.id, file.name);
+                                                removeFile(file.id);
                                             }}
-                                            className="opacity-0 group-hover:opacity-100 hover:bg-gray-200 rounded p-0.5"
-                                        >
-                                            <Pencil className="w-3 h-3" />
-                                        </button>
-
-                                        {/* Close button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                closeFile(file.id);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 rounded p-0.5"
+                                            className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
                                         >
                                             <X className="w-3 h-3" />
                                         </button>
-                                    </>
-                                )}
-                            </div>
-                        ))}
-
-                        {/* Add File Button with Dropdown */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowAddFileMenu(!showAddFileMenu)}
-                                className="p-2 hover:bg-gray-200 rounded transition-all text-gray-600"
-                                title="Add new file"
-                            >
-                                <Plus className="w-4 h-4" />
-                            </button>
-
-                            {showAddFileMenu && (
-                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[150px]">
-                                    <button
-                                        onClick={() => addFile('html')}
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 first:rounded-t-lg"
-                                    >
-                                        New HTML file
-                                    </button>
-                                    <button
-                                        onClick={() => addFile('css')}
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-                                    >
-                                        New CSS file
-                                    </button>
-                                    <button
-                                        onClick={() => addFile('js')}
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 last:rounded-b-lg"
-                                    >
-                                        New JS file
-                                    </button>
+                                    )}
                                 </div>
-                            )}
+                            ))}
+                            <button
+                                onClick={() => addFile('html')}
+                                className="p-2 rounded-lg hover:bg-white/40 text-black transition-all border-2 border-transparent hover:border-black/5"
+                            >
+                                <Plus className="w-5 h-5" />
+                            </button>
                         </div>
                     </div>
 
-                    {/* Content Area */}
-                    <div className="flex-1 overflow-y-auto p-6">
+                    {/* Right Components */}
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">Language</span>
+                            <div className="scale-90">
+                                <LanguageSelector />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 border-l-2 border-black/10 pl-4">
+                            <Button
+                                onClick={handleSave}
+                                disabled={createMutation.isPending}
+                                className="bg-white hover:bg-gray-50 text-black border-2 border-black font-bold h-10 px-6 rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all text-xs"
+                            >
+                                <Save className="w-4 h-4 mr-2" />
+                                {createMutation.isPending ? "Saving..." : "Save"}
+                            </Button>
+                            <Button
+                                onClick={handlePublish}
+                                disabled={!savedTemplateId || publishMutation.isPending}
+                                className="bg-black hover:bg-gray-800 text-white border-2 border-white/10 font-bold h-10 px-6 rounded-xl shadow-[3px_3px_0px_0px_rgba(255,255,255,0.05)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all text-xs"
+                            >
+                                <Rocket className="w-4 h-4 mr-2" />
+                                {publishMutation.isPending ? "Publishing..." : "Publish"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-                        {/* INFO TAB */}
-                        {activeTab === 'info' && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
-                                <h2 className="text-2xl font-black text-gray-900">Template Details</h2>
-
+            {/* Main Content Area */}
+            <main className="flex-1 p-4 flex gap-4 overflow-hidden">
+                {/* Left Side: Editor/Tabs */}
+                <div className={`flex-1 flex flex-col gap-4 overflow-hidden ${activeMainTab === 'editor' ? 'max-w-[50%]' : 'max-w-full'}`}>
+                    <div className="bg-white rounded-[2rem] border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] flex-1 flex flex-col overflow-hidden">
+                        {activeMainTab === 'info' && (
+                            <div className="p-8 space-y-6 overflow-y-auto">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2.5 bg-purple-100 rounded-xl border-2 border-black">
+                                        <Settings className="w-6 h-6 text-purple-600" />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-gray-900 tracking-tighter">Template Information</h2>
+                                </div>
                                 <div className="space-y-4">
-                                    <div>
-                                        <Label>Template Name</Label>
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-bold text-gray-700 ml-1">Template Name</Label>
                                         <Input
                                             value={templateName}
                                             onChange={(e) => setTemplateName(e.target.value)}
-                                            className="border-2 border-gray-200 focus:border-gray-900 rounded-xl py-6"
-                                            placeholder="My Awesome Template"
+                                            className="h-12 border-2 border-black focus:ring-0 focus:border-purple-500 rounded-xl text-sm font-bold px-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]"
+                                            placeholder="Enter template name..."
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label>Category</Label>
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-gray-700 ml-1">Category</Label>
                                             <select
                                                 value={categoryId}
                                                 onChange={(e) => {
                                                     setCategoryId(e.target.value);
                                                     setSubcategoryId("");
                                                 }}
-                                                className="w-full mt-1 px-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-900 bg-white"
+                                                className="w-full h-12 border-2 border-black rounded-xl px-4 font-bold text-sm bg-white appearance-none"
                                             >
                                                 <option value="">Select Category</option>
                                                 {categories?.map((cat: any) => (
@@ -387,13 +421,13 @@ export default function CreatorHtmlPage() {
                                                 ))}
                                             </select>
                                         </div>
-                                        <div>
-                                            <Label>Subcategory</Label>
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-bold text-gray-700 ml-1">Subcategory</Label>
                                             <select
                                                 value={subcategoryId}
                                                 onChange={(e) => setSubcategoryId(e.target.value)}
                                                 disabled={!categoryId}
-                                                className="w-full mt-1 px-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-900 bg-white disabled:bg-gray-50"
+                                                className="w-full h-12 border-2 border-black rounded-xl px-4 font-bold text-sm bg-white disabled:bg-gray-50 disabled:opacity-50 appearance-none"
                                             >
                                                 <option value="">Select Subcategory</option>
                                                 {availableSubcategories.map((subcat: any) => (
@@ -403,46 +437,45 @@ export default function CreatorHtmlPage() {
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <Label>Description</Label>
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-bold text-gray-700 ml-1">Description</Label>
                                         <textarea
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
-                                            className="w-full mt-1 px-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-gray-900 min-h-[100px]"
-                                            placeholder="Tell us about this template..."
+                                            className="w-full min-h-[120px] border-2 border-black rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-purple-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]"
+                                            placeholder="What makes this template special?"
                                         />
                                     </div>
 
-                                    <div className="flex items-center gap-4 p-4 border-2 border-dashed border-gray-200 rounded-xl">
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center ${isFree ? 'bg-gray-900 border-gray-900' : 'border-gray-300'}`}>
-                                                {isFree && <div className="w-2 h-2 bg-white rounded-full" />}
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isFree}
-                                                    onChange={(e) => setIsFree(e.target.checked)}
-                                                    className="hidden"
-                                                />
+                                    <div className="flex flex-col gap-3 p-6 bg-blue-50 rounded-[1.5rem] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    onClick={() => setIsFree(!isFree)}
+                                                    className={`w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center cursor-pointer transition-all ${isFree ? 'bg-black text-white' : 'bg-white'}`}
+                                                >
+                                                    {isFree && <div className="w-3 h-3 bg-white rounded-full" />}
+                                                </div>
+                                                <div>
+                                                    <span className="text-lg font-black text-gray-900 block">Free Template</span>
+                                                    <span className="text-[10px] font-bold text-gray-500">Allow users to use this template for free</span>
+                                                </div>
                                             </div>
-                                            <span className="font-bold text-gray-700">Free Template</span>
-                                        </label>
 
-                                        {!isFree && (
-                                            <div className="flex-1">
-                                                <Input
-                                                    type="number"
-                                                    value={price}
-                                                    onChange={(e) => setPrice(Number(e.target.value))}
-                                                    placeholder="Price (₹)"
-                                                    className="border-gray-200 rounded-lg"
-                                                />
-                                            </div>
-                                        )}
+                                            {!isFree && (
+                                                <button
+                                                    onClick={() => setIsPricingOpen(true)}
+                                                    className="px-6 py-2 bg-white border-2 border-black rounded-lg font-black text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all"
+                                                >
+                                                    {price > 0 ? `$${price} USD` : "Set Price"}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Thumbnail</Label>
-                                        <div className="border-2 border-gray-100 rounded-xl overflow-hidden">
+                                        <Label className="text-sm font-bold text-gray-700 ml-1">Template Thumbnail</Label>
+                                        <div className="border-2 border-black border-dashed rounded-[1.5rem] p-3 bg-gray-50">
                                             <ImageUpload value={thumbnail} onChange={setThumbnail} />
                                         </div>
                                     </div>
@@ -450,125 +483,126 @@ export default function CreatorHtmlPage() {
                             </div>
                         )}
 
-                        {/* CODE EDITOR TAB (for all files) */}
-                        {activeTab === 'code' && activeFile && (
-                            <div className="h-full flex flex-col p-1 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <Label className="mb-2 font-mono text-xs text-gray-500 uppercase tracking-widest">{activeFile.name}</Label>
-                                <textarea
-                                    value={activeFile.content}
-                                    onChange={(e) => updateFileContent(e.target.value)}
-                                    className="flex-1 w-full bg-[#1e1e1e] text-gray-300 p-6 rounded-2xl font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-4 focus:ring-gray-900/20"
-                                    placeholder={`// Write your ${activeFile.type.toUpperCase()} code here`}
-                                    spellCheck={false}
-                                />
-                            </div>
-                        )}
-
-                        {/* TRANSLATION TAB */}
-                        {activeTab === 'translation' && (
-                            <div className="h-full flex flex-col p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <div className="mb-4">
-                                    <h2 className="text-xl font-black text-gray-900 mb-2">Template Translations</h2>
-                                    <p className="text-sm text-gray-500 mb-4">
-                                        Add translations as a JSON object. Supported languages: en, hi, es, fr, de, ar, zh, pt, bn, ru, ur, id, te
-                                    </p>
+                        {activeMainTab === 'translation' && (
+                            <div className="p-8 space-y-6 overflow-y-auto h-full flex flex-col">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2.5 bg-blue-100 rounded-xl border-2 border-black">
+                                        <Languages className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-gray-900 tracking-tighter">Translations (JSON)</h2>
+                                        <p className="text-xs font-bold text-gray-500">Manage multiple languages for your template content</p>
+                                    </div>
                                 </div>
-
-                                <div className="flex-1 flex flex-col">
-                                    <Label className="mb-2 font-mono text-xs text-gray-500 uppercase tracking-widest">
-                                        Translations (JSON)
-                                    </Label>
+                                <div className="flex-1 flex flex-col min-h-[300px]">
                                     <textarea
                                         value={JSON.stringify(translations, null, 2)}
                                         onChange={(e) => {
                                             try {
                                                 const parsed = JSON.parse(e.target.value);
                                                 setTranslations(parsed);
-                                            } catch (err) {
-                                                // Invalid JSON, just update the text (will show error on blur)
-                                            }
+                                            } catch (err) { }
                                         }}
-                                        className="flex-1 w-full bg-[#1e1e1e] text-green-300 p-6 rounded-2xl font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-4 focus:ring-gray-900/20"
-                                        placeholder={`{\n  "en": { "key": "value" },\n  "hi": { "key": "मान" }\n}`}
+                                        className="flex-1 w-full bg-[#1e1e1e] text-[#D4D4D4] p-6 rounded-[1.5rem] border-2 border-black font-mono text-sm leading-relaxed shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] focus:outline-none"
                                         spellCheck={false}
                                     />
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        Supported languages: en, hi, es, fr, de, ar, zh, pt, bn, ru, ur, id, te
-                                    </p>
+                                    <div className="mt-4 p-4 bg-yellow-50 rounded-xl border-2 border-yellow-200 flex items-start gap-3">
+                                        <Sparkles className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                                        <p className="text-[10px] font-bold text-yellow-800">
+                                            Supported: en, hi, es, fr, de, ar, zh, pt, bn, ru, ur, id, te.
+                                            The preview will automatically update when you switch languages in the header.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeMainTab === 'editor' && activeFile && (
+                            <div className="flex-1 flex flex-col overflow-hidden">
+                                <div className="flex items-center justify-between px-6 py-4 border-b-2 border-black bg-[#FAFAFA]">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] border border-black" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] border border-black" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-[#27C93F] border border-black" />
+                                        <span className="ml-4 font-mono text-[10px] font-bold text-black uppercase tracking-widest">
+                                            {activeFile.name}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-gray-500 hover:text-black font-bold text-[10px] h-8 px-4 border border-transparent hover:border-black rounded-lg transition-all"
+                                            onClick={() => {
+                                                setRenamingFileId(activeFileId);
+                                                setRenameValue(activeFile.name);
+                                            }}
+                                        >
+                                            <Pencil className="w-3.5 h-3.5 mr-2" />
+                                            Rename
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="flex-1 relative overflow-hidden bg-[#1E1E1E]">
+                                    <div className="absolute top-0 left-0 w-12 h-full bg-black/30 border-r border-white/5 flex flex-col items-center py-6 text-[10px] font-mono text-white/20 select-none">
+                                        {Array.from({ length: 50 }).map((_, i) => (
+                                            <div key={i} className="h-[20px]">{i + 1}</div>
+                                        ))}
+                                    </div>
+                                    <textarea
+                                        value={activeFile.content}
+                                        onChange={(e) => updateFileContent(e.target.value)}
+                                        className="absolute inset-y-0 left-12 right-0 p-6 font-mono text-[13px] leading-[20px] bg-transparent text-[#D4D4D4] focus:outline-none resize-none selection:bg-white/10"
+                                        spellCheck={false}
+                                    />
                                 </div>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Right Pane: Preview & Actions */}
-                <div className="w-[55%] bg-gray-50 flex flex-col relative">
-                    {/* Floating Header Actions */}
-                    <div className="absolute top-6 right-6 z-30 flex gap-3">
-                        <Button
-                            onClick={handleSave}
-                            disabled={createMutation.isPending}
-                            className="bg-white text-gray-900 border-2 border-gray-900 hover:bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all rounded-xl font-bold px-6"
-                        >
-                            {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Save"}
-                        </Button>
-                        <Button
-                            onClick={handlePublish}
-                            disabled={!savedTemplateId || publishMutation.isPending}
-                            className="bg-gray-900 text-white border-2 border-gray-900 hover:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] transition-all rounded-xl font-bold px-6"
-                        >
-                            {publishMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Publish"}
-                        </Button>
-                    </div>
-
-                    <div className="absolute top-6 left-6 z-30">
-                        <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-full border border-gray-200 text-xs font-mono text-gray-400 uppercase tracking-widest">
-                            Live Preview
+                {/* Right Side: Live Preview */}
+                <div className={`flex-1 flex flex-col gap-4 overflow-hidden ${activeMainTab !== 'editor' ? 'hidden' : ''}`}>
+                    <div className="bg-white rounded-[2rem] border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col flex-1">
+                        <div className="bg-gray-50 px-6 py-4 border-b-2 border-black flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse border border-black" />
+                                <span className="font-bold text-[10px] text-gray-900 uppercase tracking-widest">
+                                    Live Preview
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white border border-black rounded-lg p-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                                <button
+                                    onClick={() => setViewMode('desktop')}
+                                    className={`p-1.5 rounded-[4px] transition-all ${viewMode === 'desktop' ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-500'}`}
+                                >
+                                    <Monitor className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('mobile')}
+                                    className={`p-1.5 rounded-[4px] transition-all ${viewMode === 'mobile' ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-500'}`}
+                                >
+                                    <Smartphone className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* View Options Toggle */}
-                    <div className="absolute bottom-6 right-6 z-30">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button className="bg-gray-900 text-white border-2 border-gray-900 hover:bg-gray-800 rounded-xl font-bold px-4 gap-2">
-                                    {viewMode === 'desktop' ? 'Desktop View' : 'Mobile View'}
-                                    <div className="w-px h-4 bg-gray-700 mx-1" />
-                                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 bg-white border-2 border-gray-900 rounded-xl p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                                <DropdownMenuItem onClick={() => setViewMode('desktop')} className="rounded-lg hover:bg-gray-100 cursor-pointer p-2 font-bold text-gray-700">
-                                    Desktop View
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setViewMode('mobile')} className="rounded-lg hover:bg-gray-100 cursor-pointer p-2 font-bold text-gray-700">
-                                    Mobile View
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-
-                    <div className={`flex-1 p-4 pt-20 transition-all duration-300 flex items-center justify-center ${viewMode === 'mobile' ? 'bg-gray-200/50' : ''}`}>
-                        {/* Dynamic Preview Container */}
-                        <div className={`bg-white transition-all duration-500 overflow-hidden relative shadow-lg ${viewMode === 'mobile'
-                            ? 'w-[375px] h-[667px] rounded-[3rem] border-8 border-gray-800'
-                            : 'w-full h-full rounded-[2rem] border-4 border-gray-200'
-                            }`}>
-                            {viewMode === 'mobile' && (
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-xl z-10" />
-                            )}
-                            <iframe
-                                srcDoc={getPreviewHtml()}
-                                className="w-full h-full border-none"
-                                sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"
-                                title="Live Preview"
-                            />
+                        <div className={`flex-1 relative overflow-hidden flex items-center justify-center p-6 bg-[#F8F9FA]`}>
+                            <div className={`bg-white border-2 border-black transition-all duration-500 overflow-hidden relative shadow-[10px_10px_0px_0px_rgba(0,0,0,0.05)] ${viewMode === 'mobile'
+                                ? 'w-[325px] h-[580px] rounded-[2rem] border-4'
+                                : 'w-full h-full rounded-[1.5rem]'
+                                }`}>
+                                <iframe
+                                    srcDoc={getPreviewHtml()}
+                                    className="w-full h-full border-none"
+                                    sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"
+                                    title="Live Preview"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

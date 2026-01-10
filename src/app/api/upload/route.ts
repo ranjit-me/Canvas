@@ -4,6 +4,7 @@ import { uploadToCloudinary } from '@/lib/cloudinary';
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
+        const folder = formData.get('folder') as string || 'giftora/uploads';
         const file = formData.get('file') as File;
 
         if (!file) {
@@ -16,13 +17,18 @@ export async function POST(request: NextRequest) {
         // Convert file to buffer
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
+        console.log('File size:', file.size, 'Buffer size:', buffer.length);
 
-        // Convert buffer to base64
-        const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
+        if (buffer.length === 0) {
+            return NextResponse.json(
+                { error: 'Empty file provided' },
+                { status: 400 }
+            );
+        }
 
         // Upload to Cloudinary
-        const result = await uploadToCloudinary(base64, {
-            folder: 'giftora/thumbnails',
+        const result = await uploadToCloudinary(buffer, {
+            folder: folder,
         });
 
         return NextResponse.json({
@@ -30,10 +36,10 @@ export async function POST(request: NextRequest) {
             url: result.url,
             publicId: result.publicId,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Upload error:', error);
         return NextResponse.json(
-            { error: 'Failed to upload image' },
+            { error: 'Failed to upload file', details: error.message || JSON.stringify(error) },
             { status: 500 }
         );
     }

@@ -11,6 +11,24 @@ import fs from "fs";
 import path from "path";
 import { or } from "drizzle-orm";
 
+// Retry helper for database operations
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 500): Promise<T> {
+    let lastError: any;
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await fn();
+        } catch (err) {
+            lastError = err;
+            const isTimeout = err instanceof Error && (err.message.includes('timeout') || err.message.includes('fetch failed'));
+            if (!isTimeout) throw err;
+            if (i < retries - 1) {
+                await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+            }
+        }
+    }
+    throw lastError;
+}
+
 // Helper to enrich templates with ratings
 async function enrichWithRatings(templates: any[]) {
     if (templates.length === 0) return templates;
@@ -49,7 +67,7 @@ async function mergeTemplates(options: {
 
     // Fetch React templates
     let webQuery = db.select().from(webTemplates);
-    const webConditions = [];
+    const webConditions: any[] = [];
 
     if (!includeInactive) {
         webConditions.push(eq(webTemplates.isActive, true));
@@ -58,37 +76,20 @@ async function mergeTemplates(options: {
         webConditions.push(eq(webTemplates.category, categoryFilter));
     }
 
-    const webResults = await webQuery
-        .where(webConditions.length > 0 ? and(...webConditions) : undefined)
-        .orderBy(desc(webTemplates[sortBy]));
-
     // Fetch HTML templates
     let htmlQuery = db.select().from(htmlTemplates);
-    const htmlConditions = [];
+    const htmlConditions: any[] = [];
 
     if (!includeInactive) {
-        // Include approved AND pending (if auto-approved logic is used, they are approved anyway)
-        // But for completeness, we check isActive which is the source of truth
         htmlConditions.push(eq(htmlTemplates.isActive, true));
     }
-    if (categoryFilter) {
-        // For HTML templates, also try to match by categoryId/subcategoryId
-        // First get the category by looking it up
-        const matchingCategories = await db
-            .select()
-            .from(categories)
-            .where(or(
-                eq(categories.id, categoryFilter),
-                eq(categories.name, categoryFilter)
-            ));
 
-        const matchingSubcategories = await db
-            .select()
-            .from(subcategories)
-            .where(or(
-                eq(subcategories.id, categoryFilter),
-                eq(subcategories.name, categoryFilter)
-            ));
+    if (categoryFilter) {
+        // For HTML templates, match by category/subcategory
+        const [matchingCategories, matchingSubcategories] = await withRetry(() => db.batch([
+            db.select().from(categories).where(or(eq(categories.id, categoryFilter), eq(categories.name, categoryFilter))),
+            db.select().from(subcategories).where(or(eq(subcategories.id, categoryFilter), eq(subcategories.name, categoryFilter)))
+        ]));
 
         const categoryIds = matchingCategories.map(c => c.id);
         const subcategoryIds = matchingSubcategories.map(s => s.id);
@@ -104,9 +105,15 @@ async function mergeTemplates(options: {
         htmlConditions.push(or(...filterConditions));
     }
 
-    const htmlResults = await htmlQuery
-        .where(htmlConditions.length > 0 ? and(...htmlConditions) : undefined)
-        .orderBy(desc(htmlTemplates[sortBy]));
+    // Use batch to fetch both in one round-trip
+    const [webResults, htmlResults] = await withRetry(() => db.batch([
+        webQuery.where(webConditions.length > 0 ? and(...webConditions) : undefined)
+            .orderBy(desc(webTemplates[sortBy]))
+            .limit(limit || 100),
+        htmlQuery.where(htmlConditions.length > 0 ? and(...htmlConditions) : undefined)
+            .orderBy(desc(htmlTemplates[sortBy]))
+            .limit(limit || 100)
+    ]));
 
     // Normalize HTML templates to match webTemplates structure
     const normalizedHtmlTemplates = htmlResults.map(template => ({

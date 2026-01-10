@@ -93,6 +93,8 @@ const app = new Hono()
                 subcategoryId: z.string().optional(),
                 thumbnail: z.string().optional(),
                 price: z.number().optional(),
+                pricingByCountry: z.string().optional(),
+                translations: z.string().optional(),
                 isFree: z.boolean().optional(),
                 editableFields: z.string().optional(), // JSON string
                 slug: z.string().optional(),
@@ -109,13 +111,16 @@ const app = new Hono()
                 const data = c.req.valid("json");
 
                 // AUTO-TRANSLATE: Extract and translate template content to all languages
-                let translations = null;
-                try {
-                    const translationResult = await translationService.translateTemplate(data.htmlCode);
-                    translations = JSON.stringify(translationResult);
-                    console.log('✅ Template auto-translated to 14 languages');
-                } catch (error) {
-                    console.error('Translation failed, template will be saved without translations:', error);
+                let translations = data.translations;
+
+                if (!translations) {
+                    try {
+                        const translationResult = await translationService.translateTemplate(data.htmlCode);
+                        translations = JSON.stringify(translationResult);
+                        console.log('✅ Template auto-translated to 14 languages');
+                    } catch (error) {
+                        console.error('Translation failed, template will be saved without translations:', error);
+                    }
                 }
 
                 const newTemplate = await db
@@ -157,6 +162,7 @@ const app = new Hono()
                 thumbnail: z.string().optional(),
                 price: z.number().optional(),
                 pricingByCountry: z.string().optional(),
+                translations: z.string().optional(),
                 isFree: z.boolean().optional(),
                 isActive: z.boolean().optional(),
                 status: z.string().optional(),

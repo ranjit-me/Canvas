@@ -75,6 +75,9 @@ export const TemplateDetailsModal = ({
                     htmlUpdateData.price = pricing.IN;
                 }
 
+                // Save complete pricing configuration
+                htmlUpdateData.pricingByCountry = JSON.stringify(pricing);
+
                 await updateHtmlMutation.mutateAsync({
                     id: template.id,
                     ...htmlUpdateData
