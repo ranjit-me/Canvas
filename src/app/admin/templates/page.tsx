@@ -434,6 +434,15 @@ export default function AdminDashboardPage() {
                                                 });
                                             }
                                         }}
+                                        onEditCode={(t) => {
+                                            if (t.isHtmlTemplate) {
+                                                router.push(`/creator/html?id=${t.id}`);
+                                            } else {
+                                                // Handle non-HTML templates if needed, or just toast
+                                                // For now, only HTML templates have the editor
+                                                // but button is shown for all.
+                                            }
+                                        }}
                                     />
                                 ))}
                             </div>

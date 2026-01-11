@@ -71,6 +71,13 @@
       "when": 1768024572464,
       "tag": "0009_add_mobile_to_applications",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768096533393,
+      "tag": "0010_stiff_jackpot",
+      "breakpoints": true
     }
   ]
 }

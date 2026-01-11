@@ -26,10 +26,12 @@ import {
     Menu,
     X,
     PenTool,
+    Languages,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     DropdownMenu,
@@ -202,11 +204,13 @@ const LanguageSelector = ({ language, setLanguage }: LanguageSelectorProps) => {
 };
 
 
+
 export const HorizontalNav = () => {
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { t, language, setLanguage } = useLanguage();
-    const { data: session } = useSession();
+    const { data: session, update: updateSession } = useSession();
+
 
     const name = session?.user?.name || "User";
     const email = session?.user?.email || "";

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Edit3, Eye, DollarSign, Users, ExternalLink, Trash2 } from "lucide-react";
+import { Edit3, Eye, DollarSign, Users, ExternalLink, Trash2, PencilLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AdminTemplateCardProps {
@@ -12,6 +12,7 @@ interface AdminTemplateCardProps {
     onDelete?: (template: any) => void;
     onToggleStatus?: (template: any) => void;
     onToggleFree?: (template: any) => void;
+    onEditCode?: (template: any) => void;
 }
 
 export function AdminTemplateCard({
@@ -22,7 +23,8 @@ export function AdminTemplateCard({
     onReviews,
     onDelete,
     onToggleStatus,
-    onToggleFree
+    onToggleFree,
+    onEditCode
 }: AdminTemplateCardProps) {
     return (
         <motion.div
@@ -110,7 +112,7 @@ export function AdminTemplateCard({
                 </div>
 
                 {/* Actions Grid */}
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                     <ActionButton
                         icon={Eye}
                         label="Preview"
@@ -122,6 +124,12 @@ export function AdminTemplateCard({
                         label="Edit"
                         onClick={() => onEdit(template)}
                         color="gray"
+                    />
+                    <ActionButton
+                        icon={PencilLine}
+                        label="Code"
+                        onClick={() => onEditCode?.(template)}
+                        color="purple"
                     />
                     <ActionButton
                         icon={DollarSign}

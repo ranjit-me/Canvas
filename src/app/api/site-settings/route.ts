@@ -23,6 +23,7 @@ export async function GET() {
                 contactAddress: null,
                 aboutUsContent: null,
                 socialLinks: null,
+                defaultTemplateLanguage: "en",
             });
         }
 

@@ -25,6 +25,7 @@ export async function GET() {
                 contactAddress: null,
                 aboutUsContent: null,
                 socialLinks: null,
+                defaultTemplateLanguage: "en",
             });
         }
 
@@ -51,6 +52,7 @@ export async function PATCH(req: NextRequest) {
             contactAddress,
             aboutUsContent,
             socialLinks,
+            defaultTemplateLanguage,
         } = body;
 
         // Check if settings exist
@@ -73,6 +75,7 @@ export async function PATCH(req: NextRequest) {
                     contactAddress,
                     aboutUsContent,
                     socialLinks: socialLinks ? JSON.stringify(socialLinks) : null,
+                    defaultTemplateLanguage: defaultTemplateLanguage || "en",
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 })
@@ -92,6 +95,7 @@ export async function PATCH(req: NextRequest) {
                 contactAddress,
                 aboutUsContent,
                 socialLinks: socialLinks ? JSON.stringify(socialLinks) : null,
+                defaultTemplateLanguage: defaultTemplateLanguage || "en",
                 updatedAt: new Date(),
             })
             .where(eq(siteSettings.id, SETTINGS_ID))

@@ -21,17 +21,23 @@ const languages = [
     { code: 'de', name: 'Deutsch', countryCode: 'de', flagUrl: 'https://flagcdn.com/w40/de.png' },
 ];
 
-export function LanguageSelector() {
-    const { language, setLanguage: setContextLanguage } = useLanguage();
+export function LanguageSelector({ value, onChange }: { value?: string, onChange?: (lang: string) => void } = {}) {
+    const { language: contextLanguage, setLanguage: setContextLanguage } = useLanguage();
     const { setLanguage: setTranslationLanguage } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
+    const language = value || contextLanguage;
+
     const currentLanguage = languages.find(l => l.code === language) || languages[0];
 
-    // Sync language changes with translation context
+    // Sync language changes
     const handleLanguageChange = (langCode: string) => {
-        setContextLanguage(langCode as any);
-        setTranslationLanguage(langCode);
+        if (onChange) {
+            onChange(langCode);
+        } else {
+            setContextLanguage(langCode as any);
+            setTranslationLanguage(langCode);
+        }
         setIsOpen(false);
     };
 

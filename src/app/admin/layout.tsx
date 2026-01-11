@@ -8,6 +8,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 // Language data with flags from dashboard
 const languages = [
@@ -26,6 +29,53 @@ const languages = [
 ] as const;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { t, language: webLanguage, setLanguage: setWebLanguage } = useLanguage();
+    const [templateLanguage, setTemplateLanguage] = useState("en");
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    // Fetch template language from site settings
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await fetch("/api/admin/site-settings");
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.defaultTemplateLanguage) {
+                        setTemplateLanguage(data.defaultTemplateLanguage);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch site settings:", error);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const handleTemplateLanguageUpdate = async (code: string) => {
+        setIsUpdating(true);
+        try {
+            const response = await fetch("/api/admin/site-settings", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ defaultTemplateLanguage: code }),
+            });
+
+            if (response.ok) {
+                setTemplateLanguage(code);
+                toast.success(`Default template language set to ${languages.find(l => l.code === code)?.name}`);
+            } else {
+                toast.error("Failed to update template language");
+            }
+        } catch (error) {
+            toast.error("An error occurred during update");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const currentWebLang = languages.find(l => l.code === webLanguage) || languages[0];
+    const currentTemplateLang = languages.find(l => l.code === templateLanguage) || languages[0];
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             {/* Horizontal Navbar */}
@@ -45,12 +95,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="flex items-center gap-6">
                         <DropdownMenu>
                             <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all outline-none">
+                                <span className="text-base mr-1">{currentWebLang.flag}</span>
                                 Web Language
                                 <ChevronDown className="h-4 w-4 text-gray-400" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="center" className="w-48 max-h-80 overflow-y-auto">
                                 {languages.map((lang) => (
-                                    <DropdownMenuItem key={lang.code} className="flex items-center gap-2 cursor-pointer">
+                                    <DropdownMenuItem
+                                        key={lang.code}
+                                        className="flex items-center gap-2 cursor-pointer"
+                                        onClick={() => setWebLanguage(lang.code)}
+                                    >
                                         <span className="text-base">{lang.flag}</span>
                                         <span>{lang.name}</span>
                                     </DropdownMenuItem>
@@ -60,12 +115,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                         <DropdownMenu>
                             <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all outline-none">
+                                <span className="text-base mr-1">{currentTemplateLang.flag}</span>
                                 Template Language
                                 <ChevronDown className="h-4 w-4 text-gray-400" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="center" className="w-48 max-h-80 overflow-y-auto">
                                 {languages.map((lang) => (
-                                    <DropdownMenuItem key={lang.code} className="flex items-center gap-2 cursor-pointer">
+                                    <DropdownMenuItem
+                                        key={lang.code}
+                                        className="flex items-center gap-2 cursor-pointer"
+                                        onClick={() => handleTemplateLanguageUpdate(lang.code)}
+                                    >
                                         <span className="text-base">{lang.flag}</span>
                                         <span>{lang.name}</span>
                                     </DropdownMenuItem>
@@ -76,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                     <div className="flex items-center gap-4">
                         <Link
-                            href="/"
+                            href="/dashboard"
                             className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
                         >
                             <Home className="h-4 w-4" />

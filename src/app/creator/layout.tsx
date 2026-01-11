@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const SIDEBAR_ITEMS = [
     { id: "dashboard", label: "Studio Home", icon: LayoutTemplate, href: "/creator" },
@@ -30,6 +32,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     const router = useRouter();
     const pathname = usePathname();
     const { data: session, status } = useSession();
+    const { t } = useLanguage();
 
     // Allow access to application and status pages without approval
     const isPublicCreatorPage = pathname === "/creator/apply" || pathname === "/creator/application-status";
@@ -93,7 +96,14 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
                         Creator <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Studio</span>
                     </span>
                 </Link>
-                {/* Add User Menu or Logout here if needed later */}
+
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Language</span>
+                        <LanguageSelector />
+                    </div>
+                    {/* Add User Menu or Logout here if needed later */}
+                </div>
             </header>
 
             {/* Horizontal Navigation Bar (below top navbar) */}

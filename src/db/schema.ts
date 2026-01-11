@@ -20,6 +20,7 @@ export const users = pgTable("user", {
   image: text("image"),
   password: text("password"),
   creatorStatus: text("creatorStatus").default("none"), // none, pending, approved, rejected
+  templateLanguage: text("templateLanguage"), // user's preferred template language
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -287,6 +288,7 @@ export const siteSettings = pgTable("siteSettings", {
   contactAddress: text("contactAddress"),
   aboutUsContent: text("aboutUsContent"),
   socialLinks: text("socialLinks"), // JSON: { facebook, twitter, instagram, linkedin }
+  defaultTemplateLanguage: text("defaultTemplateLanguage").default("en"),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull(),
 });

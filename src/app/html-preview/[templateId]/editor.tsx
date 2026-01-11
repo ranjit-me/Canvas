@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUpdateHtmlTemplate } from "@/features/html-templates/api/use-update-html-template";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface HtmlTemplateEditorProps {
     template: any;
@@ -20,6 +21,27 @@ export default function HtmlTemplateEditor({ template }: HtmlTemplateEditorProps
     const [jsCode, setJsCode] = useState(template.jsCode || "");
     const [showPreview, setShowPreview] = useState(true);
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+    const { language: uiLanguage } = useLanguage();
+    const [templateLanguage, setTemplateLanguage] = useState<string>(uiLanguage);
+
+    useEffect(() => {
+        const fetchPreferences = async () => {
+            try {
+                const response = await fetch("/api/profile");
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.templateLanguage) {
+                        setTemplateLanguage(data.templateLanguage);
+                    } else {
+                        setTemplateLanguage(uiLanguage);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch preferences", error);
+            }
+        };
+        fetchPreferences();
+    }, [uiLanguage]);
 
     const updateMutation = useUpdateHtmlTemplate(template.id);
 
@@ -93,7 +115,7 @@ export default function HtmlTemplateEditor({ template }: HtmlTemplateEditorProps
             const translationScript = `
                 <script>
                     window.TEMPLATE_TRANSLATIONS = ${translations};
-                    window.CURRENT_LANGUAGE = "en"; 
+                    window.CURRENT_LANGUAGE = "${templateLanguage}"; 
                 </script>
             `;
 
@@ -124,7 +146,7 @@ export default function HtmlTemplateEditor({ template }: HtmlTemplateEditorProps
         const translationScript = `
             <script>
                 window.TEMPLATE_TRANSLATIONS = ${translations};
-                window.CURRENT_LANGUAGE = "en"; 
+                window.CURRENT_LANGUAGE = "${templateLanguage}"; 
             </script>
         `;
 

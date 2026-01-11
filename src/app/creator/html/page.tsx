@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Upload, Eye, Save, Send, Plus, X, Pencil, FileCode, Languages, Settings, Rocket, Sparkles, Monitor, Tablet, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { useCreateHtmlTemplate } from "@/features/html-templates/api/use-create-html-template";
 import { usePublishHtmlTemplate } from "@/features/html-templates/api/use-publish-html-template";
 import { useGetHtmlTemplates } from "@/features/html-templates/api/use-get-html-templates";
+import { useGetHtmlTemplate } from "@/features/html-templates/api/use-get-html-template-by-id";
+import { useUpdateHtmlTemplate } from "@/features/html-templates/api/use-update-html-template";
 import { useSession } from "next-auth/react";
 import ImageUpload from "@/components/admin/ImageUpload";
 import {
@@ -34,6 +36,8 @@ interface CodeFile {
 
 export default function CreatorHtmlPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const editingId = searchParams.get("id");
     const { data: session } = useSession();
     const [templateName, setTemplateName] = useState("");
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -44,10 +48,16 @@ export default function CreatorHtmlPage() {
     const [thumbnail, setThumbnail] = useState("");
     const [price, setPrice] = useState(0);
     const [isFree, setIsFree] = useState(true);
-    const [savedTemplateId, setSavedTemplateId] = useState<string | null>(null);
+    const [savedTemplateId, setSavedTemplateId] = useState<string | null>(editingId);
     const [pricingByCountry, setPricingByCountry] = useState<Record<string, number>>({ ...DEFAULT_PRICING_BY_COUNTRY });
     const [isPricingOpen, setIsPricingOpen] = useState(false);
-    const { language: previewLanguage } = useLanguage();
+    const { language: uiLanguage } = useLanguage();
+    const [templatePreviewLanguage, setTemplatePreviewLanguage] = useState<string>(uiLanguage);
+
+    // Sync template preview language with UI language changes by default
+    useEffect(() => {
+        setTemplatePreviewLanguage(uiLanguage);
+    }, [uiLanguage]);
 
     // Redesigned states
     const [activeMainTab, setActiveMainTab] = useState<'info' | 'translation' | 'editor'>('editor');
@@ -69,6 +79,46 @@ export default function CreatorHtmlPage() {
     const { data: myTemplates } = useGetHtmlTemplates({
         creatorId: session?.user?.id,
     });
+    const { data: existingTemplate, isLoading: isFetchingTemplate } = useGetHtmlTemplate(editingId);
+
+    const updateAdminMutation = useUpdateHtmlTemplate();
+
+    // Populate state when editing an existing template
+    useEffect(() => {
+        if (existingTemplate) {
+            setTemplateName(existingTemplate.name || "");
+            setDescription(existingTemplate.description || "");
+            setCategoryId(existingTemplate.categoryId || "");
+            setSubcategoryId(existingTemplate.subcategoryId || "");
+            setThumbnail(existingTemplate.thumbnail || "");
+            setPrice(existingTemplate.price || 0);
+            setIsFree(existingTemplate.isFree ?? true);
+
+            if (existingTemplate.pricingByCountry) {
+                try {
+                    setPricingByCountry(JSON.parse(existingTemplate.pricingByCountry));
+                } catch (e) {
+                    console.error("Failed to parse pricing", e);
+                }
+            }
+
+            if (existingTemplate.translations) {
+                try {
+                    setTranslations(JSON.parse(existingTemplate.translations));
+                } catch (e) {
+                    console.error("Failed to parse translations", e);
+                }
+            }
+
+            // Populate files
+            const initialFiles: CodeFile[] = [
+                { id: 'html', name: 'index.html', type: 'html', content: existingTemplate.htmlCode || '' },
+                { id: 'css', name: 'styles.css', type: 'css', content: existingTemplate.cssCode || '' },
+                { id: 'js', name: 'script.js', type: 'js', content: existingTemplate.jsCode || '' }
+            ];
+            setFiles(initialFiles);
+        }
+    }, [existingTemplate]);
 
     // Get filtered subcategories based on selected category
     const selectedCategory = categories?.find((cat: any) => cat.id === categoryId);
@@ -136,16 +186,11 @@ export default function CreatorHtmlPage() {
             return;
         }
 
-        const templateId = `html-${Date.now()}`;
-        setSavedTemplateId(templateId);
-
-        // Extract code from files by type
         const htmlFile = files.find(f => f.type === 'html');
         const cssFile = files.find(f => f.type === 'css');
         const jsFile = files.find(f => f.type === 'js');
 
-        await createMutation.mutateAsync({
-            id: templateId,
+        const payload = {
             name: templateName,
             description,
             htmlCode: htmlFile?.content || '',
@@ -159,7 +204,21 @@ export default function CreatorHtmlPage() {
             isFree,
             pricingByCountry: JSON.stringify(pricingByCountry),
             translations: JSON.stringify(translations),
-        });
+        };
+
+        if (editingId || savedTemplateId) {
+            await updateAdminMutation.mutateAsync({
+                id: (editingId || savedTemplateId)!,
+                ...payload
+            });
+        } else {
+            const templateId = `html-${Date.now()}`;
+            setSavedTemplateId(templateId);
+            await createMutation.mutateAsync({
+                id: templateId,
+                ...payload
+            });
+        }
     };
 
     const handlePublish = async () => {
@@ -201,7 +260,7 @@ export default function CreatorHtmlPage() {
             const translationScript = `
                 <script>
                     window.TEMPLATE_TRANSLATIONS = ${translationsStr};
-                    window.CURRENT_LANGUAGE = "${previewLanguage}"; 
+                    window.CURRENT_LANGUAGE = "${templatePreviewLanguage}"; 
                 </script>
             `;
 
@@ -239,7 +298,7 @@ export default function CreatorHtmlPage() {
     <style>${cssFile?.content || ''}</style>
     <script>
         window.TEMPLATE_TRANSLATIONS = ${translationStr};
-        window.CURRENT_LANGUAGE = "${previewLanguage}"; 
+        window.CURRENT_LANGUAGE = "${templatePreviewLanguage}"; 
     </script>
 </head>
 <body>
@@ -353,9 +412,12 @@ export default function CreatorHtmlPage() {
                     {/* Right Components */}
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">Language</span>
+                            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">Preview Language</span>
                             <div className="scale-90">
-                                <LanguageSelector />
+                                <LanguageSelector
+                                    value={templatePreviewLanguage}
+                                    onChange={setTemplatePreviewLanguage}
+                                />
                             </div>
                         </div>
                         <div className="flex items-center gap-2 border-l-2 border-black/10 pl-4">
@@ -381,7 +443,15 @@ export default function CreatorHtmlPage() {
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 p-4 flex gap-4 overflow-hidden">
+            <main className="flex-1 p-4 flex gap-4 overflow-hidden relative">
+                {isFetchingTemplate && (
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+                            <p className="text-sm font-bold text-gray-900 tracking-tight">Fetching template data...</p>
+                        </div>
+                    </div>
+                )}
                 {/* Left Side: Editor/Tabs */}
                 <div className={`flex-1 flex flex-col gap-4 overflow-hidden ${activeMainTab === 'editor' ? 'max-w-[50%]' : 'max-w-full'}`}>
                     <div className="bg-white rounded-[2rem] border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] flex-1 flex flex-col overflow-hidden">
