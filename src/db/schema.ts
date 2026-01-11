@@ -21,6 +21,9 @@ export const users = pgTable("user", {
   password: text("password"),
   creatorStatus: text("creatorStatus").default("none"), // none, pending, approved, rejected
   templateLanguage: text("templateLanguage"), // user's preferred template language
+  bio: text("bio"), // Creator bio/about
+  portfolioUrl: text("portfolioUrl"), // Creator portfolio/website URL
+  socialLinks: text("socialLinks"), // JSON: { twitter, linkedin, github, etc. }
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -157,6 +160,7 @@ export const webProjects = pgTable("webProject", {
   razorpayOrderId: text("razorpayOrderId"),
   razorpayPaymentId: text("razorpayPaymentId"),
   pricePaid: integer("pricePaid"),
+  purchasedAt: timestamp("purchasedAt", { mode: "date" }),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull(),
 });

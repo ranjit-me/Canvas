@@ -55,9 +55,9 @@ export class TemplateTranslationService {
             }
         }
 
-        // Also extract from common elements with IDs (h1, h2, h3, p, span, div)
+        // Also extract from common elements with IDs (h1, h2, h3, h4, h5, h6, p, span, div, button, a, li)
         // This handles templates without data-editable attributes
-        const idTextRegex = /<(h1|h2|h3|p|span|div)[^>]+id="([^"]+)"[^>]*>([\s\S]*?)<\/\1>/gi;
+        const idTextRegex = /<(h1|h2|h3|h4|h5|h6|p|span|div|button|a|li)[^>]+id="([^"]+)"[^>]*>([\s\S]*?)<\/\1>/gi;
 
         while ((match = idTextRegex.exec(htmlCode)) !== null) {
             const tagName = match[1];

@@ -82,7 +82,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     return (
         <div className="min-h-screen bg-[#FDFCFD] flex flex-col">
             {/* Top Header */}
-            <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between shadow-sm">
+            <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between shadow-sm relative z-50">
                 <Link href="/creator" className="flex items-center gap-3 group">
                     <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-2 ring-blue-100 group-hover:ring-blue-300 transition-all">
                         <Image
@@ -159,8 +159,8 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
             </nav>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-gray-50/50">
-                <div className="flex-1 overflow-y-auto overflow-x-hidden p-6">
+            <main className="flex-1 flex flex-col min-w-0 relative bg-gray-50/50">
+                <div className="flex-1 overflow-y-auto p-6">
                     {children}
                 </div>
             </main>

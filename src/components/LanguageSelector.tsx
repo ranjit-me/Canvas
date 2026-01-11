@@ -47,7 +47,7 @@ export function LanguageSelector({ value, onChange }: { value?: string, onChange
     }, [language, setTranslationLanguage]);
 
     return (
-        <div className="relative z-50">
+        <div className="relative z-[100]">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-lg transition-all"
@@ -69,7 +69,7 @@ export function LanguageSelector({ value, onChange }: { value?: string, onChange
                     <>
                         {/* Backdrop */}
                         <div
-                            className="fixed inset-0 -z-10"
+                            className="fixed inset-0 z-[90]"
                             onClick={() => setIsOpen(false)}
                         />
 
@@ -79,7 +79,7 @@ export function LanguageSelector({ value, onChange }: { value?: string, onChange
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border-2 border-gray-100 overflow-hidden"
+                            className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border-2 border-gray-100 overflow-hidden z-[100]"
                         >
                             <div className="p-2 space-y-1 max-h-96 overflow-y-auto">
                                 {languages.map((lang) => (

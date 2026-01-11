@@ -14,6 +14,7 @@ import { MidnightPromiseTemplate } from "@/features/web-projects/templates/midni
 import { EditModeProvider } from "@/app/(dashboard)/web/features/hooks/useEditMode";
 import { Button } from "@/components/ui/button";
 import { HtmlTemplateEditor } from "@/features/web-projects/components/HtmlTemplateEditor";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function PublicProjectPage() {
     const params = useParams();
@@ -24,8 +25,16 @@ export default function PublicProjectPage() {
 
     const mode = searchParams.get("mode") || "preview";
     const isEditRequested = mode === "edit";
+    const { setLanguage } = useLanguage();
 
     const { data: response, isLoading, error } = useGetWebProjectBySlug(slug);
+
+    // Update language based on owner's preference
+    useEffect(() => {
+        if (response && response.templateLanguage) {
+            setLanguage(response.templateLanguage as any);
+        }
+    }, [response, setLanguage]);
 
     // Determine template ID for HTML template fetching
     const htmlTemplateId = React.useMemo(() => {
@@ -77,6 +86,42 @@ export default function PublicProjectPage() {
 
     // If we have an HTML template to render, show it
     if (htmlTemplate) {
+        const selectedLanguage = (response as any).templateLanguage || "en";
+        const translations = htmlTemplate.translations || '{}';
+
+        const translationDataScript = `
+<script>
+    window.TEMPLATE_TRANSLATIONS = ${translations};
+    window.CURRENT_LANGUAGE = "${selectedLanguage}";
+</script>
+        `;
+
+        const translationHandlerScript = `
+<script>
+(function() {
+    function applyTranslations() {
+        const translations = window.TEMPLATE_TRANSLATIONS || {};
+        const lang = window.CURRENT_LANGUAGE || 'en';
+        const langTranslations = translations[lang] || translations['en'];
+        
+        if (!langTranslations) return;
+
+        Object.entries(langTranslations).forEach(([key, value]) => {
+            const elements = document.querySelectorAll('[id="' + key + '"], [data-editable-text="' + key + '"], [data-editable="' + key + '"]');
+            elements.forEach(el => {
+                const currentText = el.textContent.trim();
+                if (currentText === key || currentText === 'hero.' + key || (currentText.includes('.') && currentText.toLowerCase() === key.toLowerCase())) {
+                    el.textContent = value;
+                }
+            });
+        });
+    }
+    if (document.readyState === 'complete') { applyTranslations(); } else { window.addEventListener('load', applyTranslations); }
+    applyTranslations();
+})();
+</script>
+        `;
+
         const fullHtml = `
 <!DOCTYPE html>
 <html lang="en">
@@ -84,6 +129,7 @@ export default function PublicProjectPage() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${htmlTemplate.name || 'Template'}</title>
+    ${translationDataScript}
     <style>
         ${htmlTemplate.cssCode || ''}
     </style>
@@ -93,6 +139,7 @@ export default function PublicProjectPage() {
     <script id="giftora-injected-js">
         ${htmlTemplate.jsCode || ''}
     </script>
+    ${translationHandlerScript}
 </body>
 </html>
         `.trim();

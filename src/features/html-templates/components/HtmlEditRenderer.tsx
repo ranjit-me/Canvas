@@ -7,6 +7,7 @@ import { useUpdateHtmlTemplate } from "@/features/html-templates/api/use-update-
 import { PublishDialog } from "@/features/web-projects/components/publish-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface HtmlEditRendererProps {
     template: any;
@@ -22,6 +23,7 @@ export default function HtmlEditRenderer({ template }: HtmlEditRendererProps) {
     const [htmlCode, setHtmlCode] = useState(template.htmlCode || "");
     const [cssCode, setCssCode] = useState(template.cssCode || "");
     const [jsCode, setJsCode] = useState(template.jsCode || "");
+    const [selectedLanguage, setSelectedLanguage] = useState("en");
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [editModal, setEditModal] = useState<EditModalState>({
         type: null,
@@ -86,6 +88,52 @@ export default function HtmlEditRenderer({ template }: HtmlEditRendererProps) {
 </html>
             `.trim();
         }
+
+        // Inject Translations
+        const translations = template.translations || '{}';
+        const translationDataScript = `
+<script>
+    window.TEMPLATE_TRANSLATIONS = ${translations};
+    window.CURRENT_LANGUAGE = "${selectedLanguage}";
+</script>
+        `;
+
+        // Inject Translation Handler Script
+        const translationHandlerScript = `
+<script>
+(function() {
+    function applyTranslations() {
+        const translations = window.TEMPLATE_TRANSLATIONS || {};
+        const lang = window.CURRENT_LANGUAGE || 'en';
+        const langTranslations = translations[lang] || translations['en'];
+        
+        if (!langTranslations) return;
+
+        Object.entries(langTranslations).forEach(([key, value]) => {
+            // Find by data-editable-text or id
+            const elements = document.querySelectorAll('[id="' + key + '"], [data-editable-text="' + key + '"], [data-editable="' + key + '"]');
+            elements.forEach(el => {
+                // Only replace if the content matches the key or is a typical placeholder format
+                const currentText = el.textContent.trim();
+                if (currentText === key || currentText === 'hero.' + key || (currentText.includes('.') && currentText.toLowerCase() === key.toLowerCase())) {
+                    el.textContent = value;
+                }
+            });
+        });
+    }
+
+    // Run on load
+    if (document.readyState === 'complete') {
+        applyTranslations();
+    } else {
+        window.addEventListener('load', applyTranslations);
+    }
+
+    // Also run immediately to be safe
+    applyTranslations();
+})();
+</script>
+        `;
 
         // Inject inline editing script
         const editingScript = `
@@ -217,10 +265,16 @@ export default function HtmlEditRenderer({ template }: HtmlEditRendererProps) {
 </script>
         `;
 
-        if (processedHtml.includes("</body>")) {
-            processedHtml = processedHtml.replace("</body>", `${editingScript}</body>`);
+        if (processedHtml.includes("</head>")) {
+            processedHtml = processedHtml.replace("</head>", `${translationDataScript}</head>`);
         } else {
-            processedHtml = processedHtml.replace("</html>", `${editingScript}</html>`);
+            processedHtml = translationDataScript + processedHtml;
+        }
+
+        if (processedHtml.includes("</body>")) {
+            processedHtml = processedHtml.replace("</body>", `${editingScript}${translationHandlerScript}</body>`);
+        } else {
+            processedHtml = processedHtml.replace("</html>", `${editingScript}${translationHandlerScript}</html>`);
         }
 
         return processedHtml;
@@ -388,6 +442,24 @@ export default function HtmlEditRenderer({ template }: HtmlEditRendererProps) {
                         <Sparkles className="w-3 h-3 text-yellow-400" />
                         Click on content (text, images, videos, audio) to edit. Buttons work normally!
                     </motion.div>
+
+                    {/* Language Selector */}
+                    <div className="bg-black/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-lg p-1 flex gap-1 mb-2">
+                        {['en', 'hi', 'es', 'fr'].map((lang) => (
+                            <button
+                                key={lang}
+                                onClick={() => setSelectedLanguage(lang)}
+                                className={cn(
+                                    "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                    selectedLanguage === lang
+                                        ? "bg-white text-black shadow-md"
+                                        : "text-white/60 hover:text-white"
+                                )}
+                            >
+                                {lang}
+                            </button>
+                        ))}
+                    </div>
 
                     {/* Action Buttons */}
                     <div className="bg-black/90 backdrop-blur-xl p-3 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-2 min-w-[200px]">

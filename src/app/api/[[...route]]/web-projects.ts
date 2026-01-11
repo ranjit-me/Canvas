@@ -6,7 +6,7 @@ import { zValidator } from "@hono/zod-validator";
 import { v4 as uuid } from "uuid";
 
 import { db } from "@/db/drizzle";
-import { webProjects, webTemplates, webProjectsInsertSchema } from "@/db/schema";
+import { webProjects, webTemplates, webProjectsInsertSchema, users } from "@/db/schema";
 
 const app = new Hono()
     .get(
@@ -17,8 +17,12 @@ const app = new Hono()
 
             // First, try to find in webProjects
             const webProject = await db
-                .select()
+                .select({
+                    project: webProjects,
+                    ownerLanguage: users.templateLanguage
+                })
                 .from(webProjects)
+                .leftJoin(users, eq(webProjects.userId, users.id))
                 .where(
                     and(
                         eq(webProjects.slug, slug),
@@ -27,14 +31,22 @@ const app = new Hono()
                 );
 
             if (webProject.length > 0) {
-                return c.json({ data: webProject[0], type: "react" });
+                return c.json({
+                    data: webProject[0].project,
+                    type: "react",
+                    templateLanguage: webProject[0].ownerLanguage
+                });
             }
 
             // If not found in webProjects, try htmlTemplates
             const { htmlTemplates } = await import("@/db/schema");
             const htmlTemplate = await db
-                .select()
+                .select({
+                    template: htmlTemplates,
+                    ownerLanguage: users.templateLanguage
+                })
                 .from(htmlTemplates)
+                .leftJoin(users, eq(htmlTemplates.creatorId, users.id))
                 .where(
                     and(
                         eq(htmlTemplates.slug, slug),
@@ -44,7 +56,11 @@ const app = new Hono()
                 );
 
             if (htmlTemplate.length > 0) {
-                return c.json({ data: htmlTemplate[0], type: "html" });
+                return c.json({
+                    data: htmlTemplate[0].template,
+                    type: "html",
+                    templateLanguage: htmlTemplate[0].ownerLanguage
+                });
             }
 
             return c.json({ error: "Not found" }, 404);

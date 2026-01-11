@@ -310,7 +310,7 @@ export default function CreatorHtmlPage() {
     };
 
     return (
-        <div className="min-h-screen font-sans overflow-hidden flex flex-col">
+        <div className="min-h-screen font-sans overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
             <PricingDialog
                 isOpen={isPricingOpen}
                 onOpenChange={setIsPricingOpen}
@@ -327,26 +327,34 @@ export default function CreatorHtmlPage() {
             />
 
             {/* Main Header */}
-            <header className="border-b-2 border-black py-3 px-6 sticky top-0 z-50 bg-white">
+            <header className="border-b border-white/40 backdrop-blur-xl bg-white/70 py-4 px-6 sticky top-0 z-50 shadow-lg shadow-purple-100/20">
                 <div className="flex items-center justify-between max-w-[1800px] mx-auto">
                     {/* Left: Main Tabs */}
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setActiveMainTab('info')}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${activeMainTab === 'info' ? 'bg-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black' : 'hover:bg-white/40 text-gray-700 border-transparent'}`}
+                            className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 ${activeMainTab === 'info'
+                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-105'
+                                    : 'bg-white/60 hover:bg-white/90 text-gray-700 hover:shadow-md'
+                                }`}
                         >
-                            Template Information
+                            <Settings className="w-4 h-4 inline mr-2" />
+                            Template Info
                         </button>
                         <button
                             onClick={() => setActiveMainTab('translation')}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${activeMainTab === 'translation' ? 'bg-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black' : 'hover:bg-white/40 text-gray-700 border-transparent'}`}
+                            className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 ${activeMainTab === 'translation'
+                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-105'
+                                    : 'bg-white/60 hover:bg-white/90 text-gray-700 hover:shadow-md'
+                                }`}
                         >
+                            <Languages className="w-4 h-4 inline mr-2" />
                             Translation
                         </button>
                     </div>
 
                     {/* Middle: File Management */}
-                    <div className="flex items-center gap-2 rounded-2xl p-1 border-2 border-black bg-white">
+                    <div className="flex items-center gap-2 rounded-2xl p-1.5 bg-white/80 backdrop-blur-sm shadow-md border border-purple-100">
                         <div className="flex items-center gap-1.5 p-1 rounded-xl">
                             {files.map((file) => (
                                 <div key={file.id} className="relative group">
@@ -359,7 +367,10 @@ export default function CreatorHtmlPage() {
                                             setRenamingFileId(file.id);
                                             setRenameValue(file.name);
                                         }}
-                                        className={`px-4 py-2 rounded-lg font-mono text-xs font-bold flex items-center gap-2 transition-all border-2 cursor-pointer ${activeFileId === file.id && activeMainTab === 'editor' ? 'bg-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black' : 'hover:bg-white/30 text-gray-600 border-transparent'}`}
+                                        className={`px-4 py-2 rounded-xl font-mono text-xs font-bold flex items-center gap-2 transition-all duration-300 cursor-pointer ${activeFileId === file.id && activeMainTab === 'editor'
+                                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30'
+                                                : 'hover:bg-purple-50 text-gray-700'
+                                            }`}
                                     >
                                         <FileCode className="w-4 h-4" />
                                         {renamingFileId === file.id ? (
@@ -393,7 +404,7 @@ export default function CreatorHtmlPage() {
                                                 e.stopPropagation();
                                                 removeFile(file.id);
                                             }}
-                                            className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                                            className="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:scale-110"
                                         >
                                             <X className="w-3 h-3" />
                                         </button>
@@ -402,7 +413,7 @@ export default function CreatorHtmlPage() {
                             ))}
                             <button
                                 onClick={() => addFile('html')}
-                                className="p-2 rounded-lg hover:bg-white/40 text-black transition-all border-2 border-transparent hover:border-black/5"
+                                className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 transition-all duration-300 hover:scale-110 hover:shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
@@ -411,8 +422,8 @@ export default function CreatorHtmlPage() {
 
                     {/* Right Components */}
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">Preview Language</span>
+                        <div className="flex items-center gap-2 bg-white/60 rounded-xl px-3 py-2">
+                            <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">Preview Lang</span>
                             <div className="scale-90">
                                 <LanguageSelector
                                     value={templatePreviewLanguage}
@@ -420,11 +431,11 @@ export default function CreatorHtmlPage() {
                                 />
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 border-l-2 border-black/10 pl-4">
+                        <div className="flex items-center gap-3">
                             <Button
                                 onClick={handleSave}
                                 disabled={createMutation.isPending}
-                                className="bg-white hover:bg-gray-50 text-black border-2 border-black font-bold h-10 px-6 rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all text-xs"
+                                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold h-10 px-6 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105"
                             >
                                 <Save className="w-4 h-4 mr-2" />
                                 {createMutation.isPending ? "Saving..." : "Save"}
@@ -432,7 +443,7 @@ export default function CreatorHtmlPage() {
                             <Button
                                 onClick={handlePublish}
                                 disabled={!savedTemplateId || publishMutation.isPending}
-                                className="bg-black hover:bg-gray-800 text-white border-2 border-white/10 font-bold h-10 px-6 rounded-xl shadow-[3px_3px_0px_0px_rgba(255,255,255,0.05)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all text-xs"
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold h-10 px-6 rounded-xl shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Rocket className="w-4 h-4 mr-2" />
                                 {publishMutation.isPending ? "Publishing..." : "Publish"}
@@ -443,33 +454,36 @@ export default function CreatorHtmlPage() {
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 p-4 flex gap-4 overflow-hidden relative">
+            <main className="flex-1 p-6 flex gap-6 overflow-hidden relative">
                 {isFetchingTemplate && (
                     <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-3">
-                            <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+                        <div className="flex flex-col items-center gap-4 bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-purple-100">
+                            <Loader2 className="w-12 h-12 animate-spin text-purple-600" />
                             <p className="text-sm font-bold text-gray-900 tracking-tight">Fetching template data...</p>
                         </div>
                     </div>
                 )}
                 {/* Left Side: Editor/Tabs */}
-                <div className={`flex-1 flex flex-col gap-4 overflow-hidden ${activeMainTab === 'editor' ? 'max-w-[50%]' : 'max-w-full'}`}>
-                    <div className="bg-white rounded-[2rem] border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] flex-1 flex flex-col overflow-hidden">
+                <div className={`flex-1 flex flex-col gap-6 overflow-hidden transition-all duration-500 ${activeMainTab === 'editor' ? 'max-w-[50%]' : 'max-w-full'}`}>
+                    <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-purple-100/50 shadow-2xl shadow-purple-100/20 flex-1 flex flex-col overflow-hidden">
                         {activeMainTab === 'info' && (
                             <div className="p-8 space-y-6 overflow-y-auto">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2.5 bg-purple-100 rounded-xl border-2 border-black">
-                                        <Settings className="w-6 h-6 text-purple-600" />
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-lg shadow-purple-500/30">
+                                        <Settings className="w-7 h-7 text-white" />
                                     </div>
-                                    <h2 className="text-2xl font-black text-gray-900 tracking-tighter">Template Information</h2>
+                                    <div>
+                                        <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Template Information</h2>
+                                        <p className="text-sm text-gray-600 font-medium">Configure your template details</p>
+                                    </div>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     <div className="space-y-2">
                                         <Label className="text-sm font-bold text-gray-700 ml-1">Template Name</Label>
                                         <Input
                                             value={templateName}
                                             onChange={(e) => setTemplateName(e.target.value)}
-                                            className="h-12 border-2 border-black focus:ring-0 focus:border-purple-500 rounded-xl text-sm font-bold px-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]"
+                                            className="h-12 border-2 border-purple-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 rounded-xl text-sm font-semibold px-4 bg-white/50 backdrop-blur-sm transition-all duration-300"
                                             placeholder="Enter template name..."
                                         />
                                     </div>
@@ -483,7 +497,7 @@ export default function CreatorHtmlPage() {
                                                     setCategoryId(e.target.value);
                                                     setSubcategoryId("");
                                                 }}
-                                                className="w-full h-12 border-2 border-black rounded-xl px-4 font-bold text-sm bg-white appearance-none"
+                                                className="w-full h-12 border-2 border-purple-200 focus:border-purple-500 rounded-xl px-4 font-semibold text-sm bg-white/50 backdrop-blur-sm transition-all duration-300"
                                             >
                                                 <option value="">Select Category</option>
                                                 {categories?.map((cat: any) => (
@@ -497,7 +511,7 @@ export default function CreatorHtmlPage() {
                                                 value={subcategoryId}
                                                 onChange={(e) => setSubcategoryId(e.target.value)}
                                                 disabled={!categoryId}
-                                                className="w-full h-12 border-2 border-black rounded-xl px-4 font-bold text-sm bg-white disabled:bg-gray-50 disabled:opacity-50 appearance-none"
+                                                className="w-full h-12 border-2 border-purple-200 focus:border-purple-500 rounded-xl px-4 font-semibold text-sm bg-white/50 backdrop-blur-sm disabled:bg-gray-100 disabled:opacity-60 transition-all duration-300"
                                             >
                                                 <option value="">Select Subcategory</option>
                                                 {availableSubcategories.map((subcat: any) => (
@@ -512,30 +526,33 @@ export default function CreatorHtmlPage() {
                                         <textarea
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
-                                            className="w-full min-h-[120px] border-2 border-black rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-purple-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]"
+                                            className="w-full min-h-[120px] border-2 border-purple-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 rounded-xl p-4 font-semibold text-sm bg-white/50 backdrop-blur-sm transition-all duration-300"
                                             placeholder="What makes this template special?"
                                         />
                                     </div>
 
-                                    <div className="flex flex-col gap-3 p-6 bg-blue-50 rounded-[1.5rem] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]">
+                                    <div className="flex flex-col gap-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border-2 border-purple-200 shadow-lg">
                                         <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-4">
                                                 <div
                                                     onClick={() => setIsFree(!isFree)}
-                                                    className={`w-8 h-8 rounded-lg border-2 border-black flex items-center justify-center cursor-pointer transition-all ${isFree ? 'bg-black text-white' : 'bg-white'}`}
+                                                    className={`w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300 shadow-lg ${isFree
+                                                            ? 'bg-gradient-to-br from-purple-600 to-pink-600 scale-105'
+                                                            : 'bg-white hover:bg-purple-50'
+                                                        }`}
                                                 >
-                                                    {isFree && <div className="w-3 h-3 bg-white rounded-full" />}
+                                                    {isFree && <div className="w-4 h-4 bg-white rounded-full animate-pulse" />}
                                                 </div>
                                                 <div>
-                                                    <span className="text-lg font-black text-gray-900 block">Free Template</span>
-                                                    <span className="text-[10px] font-bold text-gray-500">Allow users to use this template for free</span>
+                                                    <span className="text-lg font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent block">Free Template</span>
+                                                    <span className="text-xs font-semibold text-gray-600">Allow users to use this template for free</span>
                                                 </div>
                                             </div>
 
                                             {!isFree && (
                                                 <button
                                                     onClick={() => setIsPricingOpen(true)}
-                                                    className="px-6 py-2 bg-white border-2 border-black rounded-lg font-black text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all"
+                                                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-black text-sm shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 transition-all duration-300 hover:scale-105"
                                                 >
                                                     {price > 0 ? `$${price} USD` : "Set Price"}
                                                 </button>
@@ -545,7 +562,7 @@ export default function CreatorHtmlPage() {
 
                                     <div className="space-y-2">
                                         <Label className="text-sm font-bold text-gray-700 ml-1">Template Thumbnail</Label>
-                                        <div className="border-2 border-black border-dashed rounded-[1.5rem] p-3 bg-gray-50">
+                                        <div className="border-2 border-purple-200 border-dashed rounded-2xl p-4 bg-gradient-to-br from-purple-50/50 to-pink-50/50 backdrop-blur-sm hover:border-purple-400 transition-all duration-300">
                                             <ImageUpload value={thumbnail} onChange={setThumbnail} />
                                         </div>
                                     </div>
@@ -555,13 +572,13 @@ export default function CreatorHtmlPage() {
 
                         {activeMainTab === 'translation' && (
                             <div className="p-8 space-y-6 overflow-y-auto h-full flex flex-col">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2.5 bg-blue-100 rounded-xl border-2 border-black">
-                                        <Languages className="w-6 h-6 text-blue-600" />
+                                <div className="flex items-center gap-4 mb-2">
+                                    <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-lg shadow-blue-500/30">
+                                        <Languages className="w-7 h-7 text-white" />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tighter">Translations (JSON)</h2>
-                                        <p className="text-xs font-bold text-gray-500">Manage multiple languages for your template content</p>
+                                        <h2 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Translations (JSON)</h2>
+                                        <p className="text-sm font-semibold text-gray-600">Manage multiple languages for your template content</p>
                                     </div>
                                 </div>
                                 <div className="flex-1 flex flex-col min-h-[300px]">
@@ -573,12 +590,12 @@ export default function CreatorHtmlPage() {
                                                 setTranslations(parsed);
                                             } catch (err) { }
                                         }}
-                                        className="flex-1 w-full bg-[#1e1e1e] text-[#D4D4D4] p-6 rounded-[1.5rem] border-2 border-black font-mono text-sm leading-relaxed shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] focus:outline-none"
+                                        className="flex-1 w-full bg-gradient-to-br from-gray-900 to-gray-800 text-green-300 p-6 rounded-2xl border-2 border-purple-200 font-mono text-sm leading-relaxed shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all duration-300"
                                         spellCheck={false}
                                     />
-                                    <div className="mt-4 p-4 bg-yellow-50 rounded-xl border-2 border-yellow-200 flex items-start gap-3">
-                                        <Sparkles className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-                                        <p className="text-[10px] font-bold text-yellow-800">
+                                    <div className="mt-4 p-5 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl border-2 border-yellow-300 flex items-start gap-3 shadow-lg">
+                                        <Sparkles className="w-5 h-5 text-yellow-600 shrink-0 mt-1 animate-pulse" />
+                                        <p className="text-xs font-bold text-yellow-900">
                                             Supported: en, hi, es, fr, de, ar, zh, pt, bn, ru, ur, id, te.
                                             The preview will automatically update when you switch languages in the header.
                                         </p>
@@ -589,12 +606,12 @@ export default function CreatorHtmlPage() {
 
                         {activeMainTab === 'editor' && activeFile && (
                             <div className="flex-1 flex flex-col overflow-hidden">
-                                <div className="flex items-center justify-between px-6 py-4 border-b-2 border-black bg-[#FAFAFA]">
+                                <div className="flex items-center justify-between px-6 py-4 border-b border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] border border-black" />
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] border border-black" />
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[#27C93F] border border-black" />
-                                        <span className="ml-4 font-mono text-[10px] font-bold text-black uppercase tracking-widest">
+                                        <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50 animate-pulse" />
+                                        <div className="w-3 h-3 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50 animate-pulse" />
+                                        <div className="w-3 h-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50 animate-pulse" />
+                                        <span className="ml-4 font-mono text-xs font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent uppercase tracking-widest">
                                             {activeFile.name}
                                         </span>
                                     </div>
@@ -602,7 +619,7 @@ export default function CreatorHtmlPage() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="text-gray-500 hover:text-black font-bold text-[10px] h-8 px-4 border border-transparent hover:border-black rounded-lg transition-all"
+                                            className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 font-bold text-xs h-9 px-4 rounded-xl transition-all duration-300"
                                             onClick={() => {
                                                 setRenamingFileId(activeFileId);
                                                 setRenameValue(activeFile.name);
@@ -613,17 +630,18 @@ export default function CreatorHtmlPage() {
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="flex-1 relative overflow-hidden bg-[#1E1E1E]">
-                                    <div className="absolute top-0 left-0 w-12 h-full bg-black/30 border-r border-white/5 flex flex-col items-center py-6 text-[10px] font-mono text-white/20 select-none">
+                                <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800">
+                                    <div className="absolute top-0 left-0 w-14 h-full bg-black/40 backdrop-blur-sm border-r border-purple-500/20 flex flex-col items-center py-6 text-xs font-mono text-purple-300/40 select-none">
                                         {Array.from({ length: 50 }).map((_, i) => (
-                                            <div key={i} className="h-[20px]">{i + 1}</div>
+                                            <div key={i} className="h-[20px] hover:text-purple-300 transition-colors">{i + 1}</div>
                                         ))}
                                     </div>
                                     <textarea
                                         value={activeFile.content}
                                         onChange={(e) => updateFileContent(e.target.value)}
-                                        className="absolute inset-y-0 left-12 right-0 p-6 font-mono text-[13px] leading-[20px] bg-transparent text-[#D4D4D4] focus:outline-none resize-none selection:bg-white/10"
+                                        className="absolute inset-y-0 left-14 right-0 p-6 font-mono text-sm leading-[20px] bg-transparent text-green-300 focus:outline-none resize-none selection:bg-purple-500/30 caret-purple-400"
                                         spellCheck={false}
+                                        placeholder="Start coding your template here..."
                                     />
                                 </div>
                             </div>
@@ -632,39 +650,46 @@ export default function CreatorHtmlPage() {
                 </div>
 
                 {/* Right Side: Live Preview */}
-                <div className={`flex-1 flex flex-col gap-4 overflow-hidden ${activeMainTab !== 'editor' ? 'hidden' : ''}`}>
-                    <div className="bg-white rounded-[2rem] border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col flex-1">
-                        <div className="bg-gray-50 px-6 py-4 border-b-2 border-black flex items-center justify-between">
+                <div className={`flex-1 flex flex-col gap-6 overflow-hidden transition-all duration-500 ${activeMainTab !== 'editor' ? 'hidden' : ''}`}>
+                    <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-purple-100/50 shadow-2xl shadow-purple-100/20 overflow-hidden flex flex-col flex-1">
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-purple-100 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse border border-black" />
-                                <span className="font-bold text-[10px] text-gray-900 uppercase tracking-widest">
+                                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
+                                <span className="font-bold text-xs bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent uppercase tracking-widest">
                                     Live Preview
                                 </span>
+                                <Eye className="w-4 h-4 text-purple-600 animate-pulse" />
                             </div>
-                            <div className="flex items-center gap-2 bg-white border border-black rounded-lg p-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-xl p-1 shadow-md">
                                 <button
                                     onClick={() => setViewMode('desktop')}
-                                    className={`p-1.5 rounded-[4px] transition-all ${viewMode === 'desktop' ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-500'}`}
+                                    className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'desktop'
+                                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30'
+                                            : 'hover:bg-purple-50 text-gray-500'
+                                        }`}
                                 >
                                     <Monitor className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('mobile')}
-                                    className={`p-1.5 rounded-[4px] transition-all ${viewMode === 'mobile' ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-500'}`}
+                                    className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'mobile'
+                                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30'
+                                            : 'hover:bg-purple-50 text-gray-500'
+                                        }`}
                                 >
                                     <Smartphone className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
 
-                        <div className={`flex-1 relative overflow-hidden flex items-center justify-center p-6 bg-[#F8F9FA]`}>
-                            <div className={`bg-white border-2 border-black transition-all duration-500 overflow-hidden relative shadow-[10px_10px_0px_0px_rgba(0,0,0,0.05)] ${viewMode === 'mobile'
-                                ? 'w-[325px] h-[580px] rounded-[2rem] border-4'
-                                : 'w-full h-full rounded-[1.5rem]'
+                        <div className={`flex-1 relative overflow-hidden flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-purple-50`}>
+                            <div className={`bg-white border-2 border-purple-200 transition-all duration-500 overflow-hidden relative shadow-2xl hover:shadow-3xl ${viewMode === 'mobile'
+                                    ? 'w-[375px] h-[667px] rounded-[3rem] border-[8px] border-gray-800 shadow-purple-500/20'
+                                    : 'w-full h-full rounded-2xl shadow-purple-500/10'
                                 }`}>
                                 <iframe
                                     srcDoc={getPreviewHtml()}
-                                    className="w-full h-full border-none"
+                                    className="w-full h-full border-none rounded-xl"
                                     sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"
                                     title="Live Preview"
                                 />

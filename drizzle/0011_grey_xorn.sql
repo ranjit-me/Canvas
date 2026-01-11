@@ -1,0 +1,1 @@
+ALTER TABLE "webProject" ADD COLUMN "purchasedAt" timestamp;

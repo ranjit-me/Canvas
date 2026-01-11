@@ -356,7 +356,7 @@ export const HorizontalNav = () => {
                                     {/* Dynamic Creator Menu Item */}
                                     <DropdownMenuItem asChild className="gap-2 cursor-pointer">
                                         {session?.user?.creatorStatus === 'approved' ? (
-                                            <Link href="/creator/html">
+                                            <Link href="/creator/" target="_blank" rel="noopener noreferrer">
                                                 <PenTool className="size-4" />
                                                 <span>Creator Dashboard</span>
                                             </Link>

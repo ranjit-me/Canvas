@@ -78,6 +78,13 @@
       "when": 1768096533393,
       "tag": "0010_stiff_jackpot",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1768124072837,
+      "tag": "0011_grey_xorn",
+      "breakpoints": true
     }
   ]
 }

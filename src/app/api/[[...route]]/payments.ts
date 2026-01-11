@@ -97,6 +97,7 @@ const app = new Hono()
                     .set({
                         paymentStatus: "paid",
                         razorpayPaymentId: razorpay_payment_id,
+                        purchasedAt: new Date(),
                         updatedAt: new Date(),
                     })
                     .where(
