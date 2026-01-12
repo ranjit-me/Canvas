@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Confetti from 'canvas-confetti';
+import Confetti from 'react-confetti';
 import { Lock, Heart, Sparkles, Star, Gift } from 'lucide-react';
 
 export default function App() {

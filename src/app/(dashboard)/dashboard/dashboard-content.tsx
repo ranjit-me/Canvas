@@ -24,8 +24,8 @@ export default function DashboardContent() {
     const { data: session } = useSession();
 
     const { data: webProjects, isLoading: isLoadingProjects } = useGetWebProjects();
-    const { data: trendingTemplates, isLoading: isLoadingTrending } = useGetTrendingTemplates();
-    const { data: latestTemplates, isLoading: isLoadingLatest } = useGetLatestTemplates();
+    const { data: trendingTemplates = [], isLoading: isLoadingTrending } = useGetTrendingTemplates();
+    const { data: latestTemplates = [], isLoading: isLoadingLatest } = useGetLatestTemplates();
     const { data: leadData, isLoading: isLoadingLead } = useGetLead();
     const { onOpen: openLeadModal } = useLeadCaptureModal();
 
@@ -103,8 +103,9 @@ export default function DashboardContent() {
             {/* My Library Section */}
             <LibrarySection projects={webProjects} isLoading={isLoadingProjects} />
 
+
             {/* Trending Templates Section */}
-            {(trendingTemplates as any[]) && (trendingTemplates as any[]).length > 0 && (
+            {(trendingTemplates && trendingTemplates.length > 0) && (
                 <section id="trending" className="py-20 bg-white">
                     <div className="w-full px-4 sm:px-6">
                         <motion.div
@@ -129,7 +130,7 @@ export default function DashboardContent() {
                         {/* Horizontal Scroll */}
                         <div className="relative">
                             <div className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide">
-                                {(trendingTemplates as any[]).map((template: any, index: number) => (
+                                {trendingTemplates.map((template: any, index: number) => (
                                     <div key={template.id} className="flex-none w-[350px] snap-start">
                                         <WebTemplateCard template={template} index={index} />
                                     </div>
@@ -141,7 +142,7 @@ export default function DashboardContent() {
             )}
 
             {/* Latest Templates Section */}
-            {(latestTemplates as any[]) && (latestTemplates as any[]).length > 0 && (
+            {latestTemplates && Array.isArray(latestTemplates) && latestTemplates.length > 0 && (
                 <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
                     <div className="w-full px-4 sm:px-6">
                         <motion.div
@@ -165,7 +166,7 @@ export default function DashboardContent() {
 
                         {/* Grid Layout */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {(latestTemplates as any[]).map((template: any, index: number) => (
+                            {latestTemplates.map((template: any, index: number) => (
                                 <WebTemplateCard key={template.id} template={template} index={index} />
                             ))}
                         </div>
@@ -309,10 +310,10 @@ function LibrarySection({ projects, isLoading }: { projects: any[] | undefined, 
 
 // Category Section Component
 function CategorySection({ category, index }: { category: any; index: number }) {
-    const { data: templates, isLoading } = useGetTemplatesByCategory(category.id);
+    const { data: templates = [], isLoading } = useGetTemplatesByCategory(category.id);
     const Icon = category.icon;
 
-    if (isLoading || !(templates as any[]) || (templates as any[]).length === 0) {
+    if (isLoading || templates.length === 0) {
         return null;
     }
 
@@ -349,7 +350,7 @@ function CategorySection({ category, index }: { category: any; index: number }) 
                 {/* Horizontal Scroll */}
                 <div className="relative">
                     <div className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide">
-                        {(templates as any[]).slice(0, 6).map((template: any, templateIndex: number) => (
+                        {templates.slice(0, 6).map((template: any, templateIndex: number) => (
                             <div key={template.id} className="flex-none w-[350px] snap-start">
                                 <WebTemplateCard template={template} index={templateIndex} />
                             </div>

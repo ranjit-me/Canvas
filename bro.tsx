@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { Lock, Heart, Sparkles, Star, Gift } from 'lucide-react';
 

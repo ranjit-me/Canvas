@@ -58,6 +58,7 @@ const app = new Hono()
       }
 
       await db.insert(users).values({
+        id: crypto.randomUUID(),
         email,
         name,
         password: hashedPassword,

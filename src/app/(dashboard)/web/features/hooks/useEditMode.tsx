@@ -1,7 +1,13 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { EditState } from '../../birthday/girlfriend/rose-birthday/types';
+
+// Define EditState inline since external types file doesn't exist
+interface EditState {
+    isEditing: boolean;
+    selectedElement: string | null;
+    elementType: 'text' | 'image' | 'date' | 'timeline' | null;
+}
 
 interface EditModeContextType {
     editState: EditState;

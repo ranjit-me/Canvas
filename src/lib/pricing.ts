@@ -46,7 +46,7 @@ export function formatPrice(price: number, countryCode: string): string {
     } else if (currency.currency === 'IDR') {
         // Indonesian Rupiah (no decimals)
         return `${currency.symbol}${price.toLocaleString('id-ID')}`;
-    } else if (currency.currency === 'JPY' || currency.currency === 'CNY') {
+    } else if (currency.currency === 'CNY') {
         // Japanese Yen / Chinese Yuan (no decimals)
         return `${currency.symbol}${price.toLocaleString()}`;
     } else {

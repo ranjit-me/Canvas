@@ -27,7 +27,7 @@ export default function CreatorTemplatesPage() {
         queryFn: async () => {
             const response = await client.api["web-templates"]["admin"].$get();
             if (!response.ok) throw new Error("Failed to fetch");
-            const res = await response.json();
+            const res = await response.json() as any;
             // Show all templates for the creator (removed isDynamic filter)
             return res.data;
         },

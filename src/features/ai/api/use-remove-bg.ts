@@ -1,10 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
-import { InferRequestType, InferResponseType } from "hono";
 
 import { client } from "@/lib/hono";
 
-type ResponseType = InferResponseType<typeof client.api.ai["remove-bg"]["$post"]>;
-type RequestType = InferRequestType<typeof client.api.ai["remove-bg"]["$post"]>["json"];
+type ResponseType = any;
+type RequestType = any;
 
 export const useRemoveBg = () => {
   const mutation = useMutation<
@@ -13,7 +12,7 @@ export const useRemoveBg = () => {
     RequestType
   >({
     mutationFn: async (json) => {
-      const response = await client.api.ai["remove-bg"].$post({ json });
+      const response = await (client.api as any).ai["remove-bg"].$post({ json });
       return await response.json();
     },
   });

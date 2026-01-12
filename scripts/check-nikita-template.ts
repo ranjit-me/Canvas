@@ -39,7 +39,7 @@ async function checkTemplate() {
     const dataEditable = template.htmlCode.match(/data-editable="([^"]+)"/g);
     console.log("\ndata-editable attributes found:", dataEditable?.length || 0);
     if (dataEditable) {
-        dataEditable.forEach(attr => console.log("  -", attr));
+        dataEditable.forEach((attr: string) => console.log("  -", attr));
     }
 
     // Check for id attributes

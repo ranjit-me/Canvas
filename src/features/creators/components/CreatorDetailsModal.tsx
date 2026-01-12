@@ -37,7 +37,7 @@ export function CreatorDetailsModal({ creatorId, isOpen, onClose }: CreatorDetai
                             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex flex-col md:flex-row gap-6 items-start">
                                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold uppercase shadow-md flex-shrink-0">
                                     {creator.profilePhotoUrl ? (
-                                        <img src={creator.profilePhotoUrl || ""} alt={creator.name} className="w-full h-full rounded-full object-cover" />
+                                        <img src={creator.profilePhotoUrl || ""} alt={creator.name || ""} className="w-full h-full rounded-full object-cover" />
                                     ) : (
                                         creator.name?.charAt(0)
                                     )}

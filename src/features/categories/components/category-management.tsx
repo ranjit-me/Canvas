@@ -39,7 +39,7 @@ type Category = {
     name: string;
     description?: string | null;
     icon?: string | null;
-    displayOrder: number;
+    displayOrder: number | null;
     subcategories?: Subcategory[];
 };
 
@@ -49,7 +49,7 @@ type Subcategory = {
     name: string;
     description?: string | null;
     icon?: string | null;
-    displayOrder: number;
+    displayOrder: number | null;
 };
 
 export function CategoryManagement() {

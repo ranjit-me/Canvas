@@ -3,12 +3,12 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { 
-  AlertTriangle, 
-  CopyIcon, 
-  FileIcon, 
-  Loader, 
-  MoreHorizontal, 
+import {
+  AlertTriangle,
+  CopyIcon,
+  FileIcon,
+  Loader,
+  MoreHorizontal,
   Search,
   Trash
 } from "lucide-react";
@@ -23,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
+import {
   Table,
   TableRow,
   TableBody,
@@ -110,16 +110,16 @@ export const ProjectsSection = () => {
   }
 
   return (
-    <div className="space-y-4"> 
+    <div className="space-y-4">
       <ConfirmDialog />
       <h3 className="font-semibold text-lg">
         Recent projects
       </h3>
       <Table>
         <TableBody>
-          {data.pages.map((group, i) => (
+          {data.pages.map((group: any, i: number) => (
             <React.Fragment key={i}>
-              {group.data.map((project) => (
+              {group.data.map((project: any) => (
                 <TableRow key={project.id}>
                   <TableCell
                     onClick={() => router.push(`/editor/${project.id}`)}

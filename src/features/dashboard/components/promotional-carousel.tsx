@@ -59,7 +59,7 @@ export const PromotionalCarousel = () => {
                     transition={{ duration: 0.5 }}
                     className="absolute inset-0 cursor-pointer"
                     onClick={() => handleBannerClick(currentBanner.linkUrl)}
-                    style={{ backgroundColor: currentBanner.backgroundColor }}
+                    style={{ backgroundColor: currentBanner.backgroundColor || undefined }}
                 >
                     <div className="relative w-full h-full flex items-center justify-between px-8 md:px-16">
                         {/* Content Section */}
@@ -136,8 +136,8 @@ export const PromotionalCarousel = () => {
                         <button
                             key={index}
                             className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex
-                                    ? "bg-white w-6"
-                                    : "bg-white/50 hover:bg-white/75"
+                                ? "bg-white w-6"
+                                : "bg-white/50 hover:bg-white/75"
                                 }`}
                             onClick={(e) => {
                                 e.stopPropagation();

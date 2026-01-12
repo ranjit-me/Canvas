@@ -18,7 +18,7 @@ async function runMigrations() {
             path.join(__dirname, "../drizzle/0003_create_categories.sql"),
             "utf8"
         );
-        await sql(categoriesSql);
+        await sql(categoriesSql as any);
         console.log("✅ Categories tables created");
 
         // Run seed data
@@ -27,7 +27,7 @@ async function runMigrations() {
             path.join(__dirname, "../drizzle/0004_seed_categories.sql"),
             "utf8"
         );
-        await sql(seedSql);
+        await sql(seedSql as any);
         console.log("✅ Categories seeded");
 
         console.log("🎉 All migrations completed successfully!");

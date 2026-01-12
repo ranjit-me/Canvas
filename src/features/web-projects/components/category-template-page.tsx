@@ -42,12 +42,13 @@ interface CategoryTemplatePageProps {
 }
 
 export function CategoryTemplatePage({ config }: CategoryTemplatePageProps) {
-    const { data: templates, isLoading } = useGetWebTemplates();
+    const { data: templatesRaw, isLoading } = useGetWebTemplates();
+    const templates = (templatesRaw || []) as any[];
     const [selectedSubcategory, setSelectedSubcategory] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
 
     // Filter templates by category
-    const categoryTemplates = templates?.filter((t: any) => {
+    const categoryTemplates = templates.filter((t: any) => {
         const isCategory = t.category.startsWith(config.categoryPrefix);
         if (!isCategory) return false;
 
@@ -71,7 +72,7 @@ export function CategoryTemplatePage({ config }: CategoryTemplatePageProps) {
     const groupedTemplates = selectedSubcategory === "all"
         ? config.subcategories.slice(1).map(subcat => ({
             ...subcat,
-            templates: templates?.filter((t: any) => t.category.startsWith(subcat.category)) || []
+            templates: templates.filter((t: any) => t.category.startsWith(subcat.category)) || []
         })).filter(group => group.templates.length > 0)
         : null;
 

@@ -42,7 +42,7 @@ interface CategoryFormDialogProps {
         name: string;
         description?: string | null;
         icon?: string | null;
-        displayOrder: number;
+        displayOrder: number | null;
     };
 }
 

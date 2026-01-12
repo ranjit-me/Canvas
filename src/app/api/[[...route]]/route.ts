@@ -25,14 +25,21 @@ export const runtime = "nodejs";
 
 function getAuthConfig(c: Context): AuthConfig {
   return {
+    ...authConfig,
     secret: process.env.AUTH_SECRET,
-    ...authConfig
-  };
+    trustHost: true,
+  } as AuthConfig;
 };
 
 const app = new Hono().basePath("/api");
 
-app.use("*", initAuthConfig(getAuthConfig));
+app.all("/auth/*", (c, next) => next()); // Skip Hono auth middleware for NextAuth patterns
+app.use("*", (c, next) => {
+  if (c.req.path.startsWith("/auth")) {
+    return next();
+  }
+  return initAuthConfig(getAuthConfig)(c, next);
+});
 
 const routes = app
   .route("/users", users)

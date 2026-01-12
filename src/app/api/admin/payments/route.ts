@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
     try {
-        const { searchParams } = new URL(request.URL);
+        const { searchParams } = new URL(request.url);
         const status = searchParams.get("status"); // completed, pending, failed
         const startDate = searchParams.get("startDate");
         const endDate = searchParams.get("endDate");

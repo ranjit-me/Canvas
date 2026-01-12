@@ -150,6 +150,7 @@ const app = new Hono()
         await db
           .insert(subscriptions)
           .values({
+            id: subscription.id, // Use Stripe subscription ID as the record ID
             status: subscription.status,
             userId: session.metadata.userId,
             subscriptionId: subscription.id,

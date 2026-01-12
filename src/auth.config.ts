@@ -18,19 +18,20 @@ const CredentialsSchema = z.object({
 
 declare module "next-auth/jwt" {
   interface JWT {
-    id: string | undefined;
-    creatorStatus: string | null | undefined;
+    id?: string;
+    creatorStatus?: string | null;
   }
 }
 
 declare module "@auth/core/jwt" {
   interface JWT {
-    id: string | undefined;
-    creatorStatus: string | null | undefined;
+    id?: string;
+    creatorStatus?: string | null;
   }
 }
 
 export default {
+  trustHost: true,
   adapter: DrizzleAdapter(db),
   providers: [
     Credentials({
@@ -91,7 +92,7 @@ export default {
 
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user }): Promise<JWT> {
       if (user) {
         token.id = user.id;
         token.creatorStatus = user.creatorStatus;
