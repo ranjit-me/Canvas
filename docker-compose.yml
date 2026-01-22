@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  webapp:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+
+    env_file:
+      - ./app/.env.production
+
+    environment:
+      NODE_ENV: production
+      # NEXT_PUBLIC_APP_URL: ${APP_URL}
+      # AUTH_URL: ${APP_URL}/api/auth
+      # NEXTAUTH_URL: ${APP_URL}
+      # AUTH_TRUST_HOST: "true"
+
+    ports:
+      - "3000:3000"
+
+    restart: always
+    # ✅ FIXED HEALTHCHECK (important)
+    # healthcheck:
+    #   test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1" ]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 90s # ⬅️ very important for Next.js
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+
+    ports:
+      - "80:80"
+
+    # depends_on:
+    #   webapp:
+    #     condition: service_healthy
+
+    restart: always
+
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3

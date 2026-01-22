@@ -1,0 +1,183 @@
+
+
+// pipeline {
+//     agent any
+
+//     options {
+//         disableConcurrentBuilds()
+//     }
+
+//     stages {
+//         stage('Clean Workspace') {
+//             steps {
+//                 deleteDir()
+//             }
+//         }
+
+//         stage('Checkout') {
+//             steps {
+//                 git branch: 'main',
+//                     url: 'git@github.com:ranjit-me/surprised.git',
+//                     credentialsId: 'github-ssh'
+//             }
+//         }
+
+//         stage('Inject Env') {
+//             environment {
+//                 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = credentials('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME')
+//                 CLOUDINARY_API_KEY               = credentials('CLOUDINARY_API_KEY')
+//                 CLOUDINARY_API_SECRET            = credentials('CLOUDINARY_API_SECRET')
+//                 CLOUDINARY_URL                   = credentials('CLOUDINARY_URL')
+
+//                 AUTH_GITHUB_ID                   = credentials('AUTH_GITHUB_ID')
+//                 AUTH_GITHUB_SECRET               = credentials('AUTH_GITHUB_SECRET')
+
+//                 AUTH_GOOGLE_ID                   = credentials('AUTH_GOOGLE_ID')
+//                 AUTH_GOOGLE_SECRET               = credentials('AUTH_GOOGLE_SECRET')
+
+//                 AUTH_SECRET                      = credentials('AUTH_SECRET')
+//                 AUTH_TRUST_HOST                  = credentials('AUTH_TRUST_HOST')
+
+//                 RAZORPAY_KEY_ID                  = credentials('RAZORPAY_KEY_ID')
+//                 RAZORPAY_KEY_SECRET              = credentials('RAZORPAY_KEY_SECRET')
+//                 NEXT_PUBLIC_RAZORPAY_KEY_ID      = credentials('NEXT_PUBLIC_RAZORPAY_KEY_ID')
+
+//                 DATABASE_URL                     = credentials('DATABASE_URL')
+//             }
+
+//             steps {
+//                 sh '''
+//                 mkdir -p app
+
+//                 echo "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME" > app/.env.production
+//                 echo "CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY" >> app/.env.production
+//                 echo "CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET" >> app/.env.production
+//                 echo "CLOUDINARY_URL=$CLOUDINARY_URL" >> app/.env.production
+
+//                 echo "AUTH_GITHUB_ID=$AUTH_GITHUB_ID" >> app/.env.production
+//                 echo "AUTH_GITHUB_SECRET=$AUTH_GITHUB_SECRET" >> app/.env.production
+
+//                 echo "AUTH_GOOGLE_ID=$AUTH_GOOGLE_ID" >> app/.env.production
+//                 echo "AUTH_GOOGLE_SECRET=$AUTH_GOOGLE_SECRET" >> app/.env.production
+
+//                 echo "AUTH_SECRET=$AUTH_SECRET" >> app/.env.production
+//                 echo "AUTH_TRUST_HOST=$AUTH_TRUST_HOST" >> app/.env.production
+
+//                 echo "RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID" >> app/.env.production
+//                 echo "RAZORPAY_KEY_SECRET=$RAZORPAY_KEY_SECRET" >> app/.env.production
+//                 echo "NEXT_PUBLIC_RAZORPAY_KEY_ID=$NEXT_PUBLIC_RAZORPAY_KEY_ID" >> app/.env.production
+
+//                 echo "DATABASE_URL=$DATABASE_URL" >> app/.env.production
+//                 '''
+//             }
+//         }
+
+//         stage('Build Images') {
+//             steps {
+//                 sh '''
+//                   docker-compose build --no-cache
+//                 '''
+//             }
+//         }
+
+//         stage('Deploy') {
+//             steps {
+//                 sh '''
+//                   docker-compose down || true
+//                   docker-compose up -d
+//                 '''
+//             }
+//         }
+//     }
+// }
+
+pipeline {
+    agent any
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'git@github.com:ranjit-me/surprised.git',
+                    credentialsId: 'github-ssh'
+            }
+        }
+
+        stage('Inject Env') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME', variable: 'NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME'),
+                    string(credentialsId: 'CLOUDINARY_API_KEY', variable: 'CLOUDINARY_API_KEY'),
+                    string(credentialsId: 'CLOUDINARY_API_SECRET', variable: 'CLOUDINARY_API_SECRET'),
+                    string(credentialsId: 'CLOUDINARY_URL', variable: 'CLOUDINARY_URL'),
+
+                    string(credentialsId: 'AUTH_GITHUB_ID', variable: 'AUTH_GITHUB_ID'),
+                    string(credentialsId: 'AUTH_GITHUB_SECRET', variable: 'AUTH_GITHUB_SECRET'),
+
+                    string(credentialsId: 'AUTH_GOOGLE_ID', variable: 'AUTH_GOOGLE_ID'),
+                    string(credentialsId: 'AUTH_GOOGLE_SECRET', variable: 'AUTH_GOOGLE_SECRET'),
+
+                    string(credentialsId: 'AUTH_SECRET', variable: 'AUTH_SECRET'),
+                    string(credentialsId: 'AUTH_TRUST_HOST', variable: 'AUTH_TRUST_HOST'),
+
+                    string(credentialsId: 'RAZORPAY_KEY_ID', variable: 'RAZORPAY_KEY_ID'),
+                    string(credentialsId: 'RAZORPAY_KEY_SECRET', variable: 'RAZORPAY_KEY_SECRET'),
+                    string(credentialsId: 'NEXT_PUBLIC_RAZORPAY_KEY_ID', variable: 'NEXT_PUBLIC_RAZORPAY_KEY_ID'),
+
+                    string(credentialsId: 'DATABASE_URL', variable: 'DATABASE_URL')
+                ]) {
+                    sh '''
+                    mkdir -p app
+
+                    echo "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME" > app/.env.production
+                    echo "CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY" >> app/.env.production
+                    echo "CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET" >> app/.env.production
+                    echo "CLOUDINARY_URL=$CLOUDINARY_URL" >> app/.env.production
+
+                    echo "AUTH_GITHUB_ID=$AUTH_GITHUB_ID" >> app/.env.production
+                    echo "AUTH_GITHUB_SECRET=$AUTH_GITHUB_SECRET" >> app/.env.production
+
+                    echo "AUTH_GOOGLE_ID=$AUTH_GOOGLE_ID" >> app/.env.production
+                    echo "AUTH_GOOGLE_SECRET=$AUTH_GOOGLE_SECRET" >> app/.env.production
+
+                    echo "AUTH_SECRET=$AUTH_SECRET" >> app/.env.production
+                    echo "AUTH_TRUST_HOST=$AUTH_TRUST_HOST" >> app/.env.production
+
+                    echo "RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID" >> app/.env.production
+                    echo "RAZORPAY_KEY_SECRET=$RAZORPAY_KEY_SECRET" >> app/.env.production
+                    echo "NEXT_PUBLIC_RAZORPAY_KEY_ID=$NEXT_PUBLIC_RAZORPAY_KEY_ID" >> app/.env.production
+
+                    echo "DATABASE_URL=$DATABASE_URL" >> app/.env.production
+                    '''
+                }
+            }
+        }
+
+        stage('Build Images') {
+            steps {
+                sh '''
+                  docker-compose build --no-cache
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                  docker-compose down || true
+                  docker-compose up -d
+                '''
+            }
+        }
+    }
+}
